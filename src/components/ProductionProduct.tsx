@@ -23,8 +23,8 @@ export const ProductionProduct: React.FC<ProductionProductProps> = ({
 
       {/* Input para la cantidad */}
       <Input
-        type="number"
-        placeholder={`Cantidad de ${productName}`}
+        type="text"
+        placeholder={`Can ${productName}`}
         onChange={handleInputChange}
         className="mt-1 col-span-3"
       />

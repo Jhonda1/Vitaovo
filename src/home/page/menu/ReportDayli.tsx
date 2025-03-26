@@ -111,13 +111,13 @@ export function ReportDaily() {
 
         <div className="">
           <h6 className="text-2xl font-bold mb-4">Producción</h6>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {Object.keys(quantities).map((productName) => (
               <div key={productName} className="flex items-center space-x-2">
-                <ProductionProduct
-                  productName={productName}
-                  onQuantityChange={(quantity) => handleQuantityChange(productName, quantity)}
-                />
+          <ProductionProduct
+            productName={productName}
+            onQuantityChange={(quantity) => handleQuantityChange(productName, quantity)}
+          />
               </div>
             ))}
           </div>
