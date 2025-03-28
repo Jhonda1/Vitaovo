@@ -2,6 +2,7 @@ import { PasswordIcon, UserLoginIcon } from "@/components/icon";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { Button } from "@/components/ui/button";
 import LogoVitaovo from '../../assets/Logo.png';
+import LogoProsof from '../../assets/Prosof.png';
 import {
   Card,
   CardContent,
@@ -15,29 +16,32 @@ import { useAuthStore } from "@/store/useAuthStore";
 import * as motion from "motion/react-client";
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useApi } from "@/hooks/useApiService";
+import { toast } from 'sonner';
+
 
 export const FormUser = () => {
   /* GLOBAL STATE */
   const removeNitStore = useAuthStore((state) => state.removeNit);
   const onLoginUserStore = useAuthStore((state) => state.onLoginUser);
-
+  const { apiService } = useApi();
+  
   /* LOCAL STATE */
   const [loginData, setLoginData] = useState<{ user: string; password: string }>({ user: '', password: '' });
-  
-  
-  
   const navigate = useNavigate();
 
-
-
-
-
-  function validateUser() {
-    console.log("validateUser");
-    if(loginData.user != null && loginData.user.length > 0 && loginData.password != null && loginData.password.length > 0){
-      console.log('user', loginData.user);
-      onLoginUserStore('Prosof ', '1', 'token bearer');
-      navigate('/home');
+  async function validateUser() {
+    console.log("validateUser",loginData.user,loginData.password);
+    if (loginData.user && loginData.password) {
+      const response = await apiService.post("/login", { user: loginData.user, password: loginData.password, usuarios: true });
+      console.log("Respuesta de la API:", response.data);
+      if (response.data && response.data.success) {
+        console.log('Login successful', response.data);
+        onLoginUserStore(response.data.name, response.data.id, response.data.token);
+        navigate('/home');
+      } 
+    } else {
+      toast('Por favor, complete todos los campos');
     }
   }
   return (
@@ -70,14 +74,24 @@ export const FormUser = () => {
                 <UserLoginIcon />
                 Usuario
               </Label>
-              <Input id="user" value={loginData.user} onChange={(e)=> setLoginData((prevState)=>({...prevState,user:e.target.value}))}/>
+              <Input type="text" id="user" value={loginData.user} onChange={(e)=> setLoginData((prevState)=>({...prevState,user:e.target.value}))}/>
             </div>
             <div className="flex flex-col space-y-1.5">
               <Label htmlFor="password" className="text-slate-700">
-                <PasswordIcon />
-                Contraseña
+              <PasswordIcon />
+              Contraseña
               </Label>
-              <Input id="password" value={loginData.password} onChange={(e)=> setLoginData((prevState)=>({...prevState,password:e.target.value}))}/>
+              <Input
+              id="password"
+              type="password"
+              value={loginData.password}
+              onChange={(e) =>
+                setLoginData((prevState) => ({
+                ...prevState,
+                password: e.target.value,
+                }))
+              }
+              />
             </div>
           </div>
         </CardContent>

@@ -2,32 +2,34 @@ import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
-interface ProductionProductProps {
+interface ProductClasificationProps {
   productName: string; // Nombre del producto
+  quantity: number; // Cantidad inicial del producto
   onQuantityChange: (quantity: number) => void; // Función para manejar el cambio de cantidad
 }
 
-export const ProductionProduct: React.FC<ProductionProductProps> = ({
+export const ProductClasification: React.FC<ProductClasificationProps> = ({
   productName,
+  quantity,
   onQuantityChange,
 }) => {
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChangeProduct = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
     onQuantityChange(isNaN(value) ? 0 : value); // Llama a la función con la cantidad ingresada
   };
 
   return (
-    <div className=" p-1 border rounded-md shadow-sm">
+    <div className="flex items-center justify-between p-4 border rounded-md shadow-sm bg-white">
       {/* Nombre del producto */}
-      <Label className="text-sm font-medium text-gray-700 col-span-1">{productName}</Label>
+      <Label className="text-sm font-medium text-gray-700">{productName}</Label>
 
       {/* Input para la cantidad */}
       <Input
         type="text"
-        placeholder={`Cant ${productName}`}
-        onChange={handleInputChange}
-        className="mt-1 col-span-3"
-        id={`input-${productName}`}
+        value={quantity}
+        onChange={handleInputChangeProduct}
+        className="w-20 text-center"
+        placeholder="Cantidad"
       />
     </div>
   );

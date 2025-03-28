@@ -18,7 +18,7 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
       {products.map((product) => (
         <div
           key={product.id}
-          className="flex items-center justify-between gap-4 p-1 border rounded-md"
+          className="flex items-center justify-between gap-3 p-1 border rounded-md"
         >
           {/* Nombre del producto */}
           <div className="flex flex-col">
@@ -28,8 +28,8 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
 
           {/* Inventario actual */}
           <div className="text-center">
+            <Label className="font-bold text-center block">{product.inventory}</Label>
             <span className="text-sm text-gray-500">Inventario actual</span>
-            <p className="font-bold">{product.inventory}</p>
           </div>
 
           {/* Input con placeholder dinámico */}

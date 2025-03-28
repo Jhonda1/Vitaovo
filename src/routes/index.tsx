@@ -1,4 +1,5 @@
 import { Login } from "@/auth/page/Login";
+import { Toaster } from "@/components/ui/sonner";
 import { Home } from "@/home/page/Home";
 import { BrowserRouter, Routes, Route } from "react-router";
 
@@ -13,6 +14,7 @@ export const AppRouter = () => {
           <Route path="*" element={<h1>Not found page que trist</h1>} />
         </Routes>
       </BrowserRouter>
+      <Toaster />
     </div>
   );
 }

@@ -16,7 +16,7 @@ export const Alert: React.FC<AlertProps> = ({
   type,
   isOpen,
   onClose,
-  duration = 1000, // Duración predeterminada de 3 segundos
+  duration = 1000, // Valor por defecto de 1 segundo
 }) => {
   useEffect(() => {
     if (isOpen) {
