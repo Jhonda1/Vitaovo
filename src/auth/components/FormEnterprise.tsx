@@ -21,12 +21,14 @@ export const FormEnterprise = () => {
 
   async function validateNit() {
     if (nit != null && nit.length > 0) {
+      const appName = import.meta.env.VITE_APP_NAME;
+      
       setLoading(true);
       setError(null); // Limpia errores previos
       try {
         // Realiza la petición a la API
         // console.log(nit)
-        const response = await apiService.post("/auth", { NIT: nit });
+        const response = await apiService.post("/auth", { NIT: nit, APPNAME: appName });
         console.log("Respuesta de la API:", response.data);
         
         if (response.data.success) {

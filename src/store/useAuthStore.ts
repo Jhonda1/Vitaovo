@@ -47,6 +47,7 @@ export const useAuthStore = create<State & Action>((set) => ({
     set({ userName: null, userId: null, token: null, isLogged: false })
     localStorage.removeItem('user')
     localStorage.removeItem('conf')
+    localStorage.removeItem('nit')
   }
 
 }));

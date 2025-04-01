@@ -176,7 +176,7 @@ export function ClasificationProduct() {
                 key={product.id}
                 productName={product.name}
                 quantity={product.quantity}
-                onQuantityChange={(quantity) => handleQuantityChange(product.id, quantity)}
+                onQuantityChange={(quantity) => handleQuantityChangeProduct(product.id, quantity)}
               />
             ))}
           </div>

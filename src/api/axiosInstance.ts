@@ -52,19 +52,12 @@ export function createAxiosInstance(URL_API: string): AxiosInstance {
       console.log('statusCode:', error?.response?.status)
 
       if (error?.response?.status === 500) {
-        toast("Error en la respuesta de la solicitud ❌")
-        // Toast.show({
-        //   type: 'error',
-        //   text1: 'Error ❌',
-        //   text2: 'Error en la respuesta de la solicitud'
-        // })
+        const errorMessage = error?.response?.data?.message || "Error en la respuesta de la solicitud ❌";
+        toast(errorMessage);
       } else if (error?.response?.status === 401) {
-        toast("Sesión expirada, por favor inicie sesión nuevamente ❌")
-        // Toast.show({
-        //   type: 'error',
-        //   text1: 'Error ❌',
-        //   text2: 'Sesion Vencida, Inicie de nuevo'
-        // })
+        console.log('Error 401: Sesión expirada', error?.response?.data)
+        const errorMessage = error?.response?.data?.message || "Sesión expirada, por favor inicie sesión nuevamente ❌";
+        toast(errorMessage);
       }
 
       return Promise.reject({ statusCode: error?.response?.status || 404, message: error?.response?.data?.message || 'Error en la conexión', ...error?.response?.data })
