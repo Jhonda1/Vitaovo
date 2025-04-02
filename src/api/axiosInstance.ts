@@ -22,13 +22,24 @@ export function createAxiosInstance(URL_API: string): AxiosInstance {
         // Recupera la configuración de la base de datos desde localStorage
         const conf = localStorage.getItem("conf");
         const parsedConf = conf ? JSON.parse(conf) : null;
+  
         // Si existe la configuración de la base de datos, agrega el encabezado
         if (parsedConf) {
           config.headers["DB-CONFIG"] = parsedConf;
         } else {
           console.warn("No se encontró la configuración de la base de datos en localStorage.");
         }
-
+  
+        // Recupera el token desde la clave "user" en localStorage
+        const user = localStorage.getItem("user");
+        const parsedUser = user ? JSON.parse(user) : null;
+  
+        if (parsedUser?.token) {
+          config.headers.Authorization = `Bearer ${parsedUser.token}`; // Agrega el token al encabezado
+        } else {
+          console.warn("No se encontró el token en la clave 'user' de localStorage.");
+        }
+  
         return config;
       } catch (error) {
         console.error("Error en el interceptor de solicitudes:", error);
@@ -36,14 +47,13 @@ export function createAxiosInstance(URL_API: string): AxiosInstance {
       }
     },
     (error) => {
-      return Promise.reject(error)
+      return Promise.reject(error);
     }
   );
 
   // Interceptor de respuestas
   axiosInstance.interceptors.response.use(
     (response) => {
-      console.log('Respuesta de la API:', response.data)
       return response
     },
     async (error) => {

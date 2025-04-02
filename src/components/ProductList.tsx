@@ -2,14 +2,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 interface Product {
-  id: string; // Identificador único del producto
+  productId: string; // Identificador único del producto
   name: string; // Nombre del producto
   inventory: number; // Inventario actual del producto
 }
 
 interface ProductListProps {
   products: Product[]; // Lista de productos
-  onInputChange: (id: string, value: string) => void; // Función para manejar cambios en los inputs
+  onInputChange: (productId: string, value: string) => void; // Función para manejar cambios en los inputs
 }
 
 export const ProductList: React.FC<ProductListProps> = ({ products, onInputChange }) => {
@@ -17,7 +17,7 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
     <div className="flex flex-col gap-4">
       {products.map((product) => (
         <div
-          key={product.id}
+          key={product.productId}
           className="flex items-center justify-between gap-3 p-1 border rounded-md"
         >
           {/* Nombre del producto */}
@@ -33,12 +33,13 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
           </div>
 
           {/* Input con placeholder dinámico */}
-          <div className="w-1/3">
+            <div className="w-1/3">
             <Input
+              id={`input-${product.productId}`}
               placeholder={`Consumo ${product.name}`}
-              onChange={(e) => onInputChange(product.id, e.target.value)}
+              onChange={(e) => onInputChange(product.productId, e.target.value)}
             />
-          </div>
+            </div>
         </div>
       ))}
     </div>

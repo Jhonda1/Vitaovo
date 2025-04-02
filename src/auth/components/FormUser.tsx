@@ -37,7 +37,9 @@ export const FormUser = () => {
       console.log("Respuesta de la API:", response.data);
       if (response.data && response.data.success) {
         console.log('Login successful', response.data);
-        onLoginUserStore(response.data.name, response.data.id, response.data.token);
+        const user = response.data.user;
+        const token = response.data.token;
+        onLoginUserStore(user.name, user.id, token);
         navigate('/home');
       } 
     } else {

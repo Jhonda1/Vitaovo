@@ -35,8 +35,7 @@ export const useAuthStore = create<State & Action>((set) => ({
 
   },
   removeNit: () => {
-    localStorage.removeItem('nit')
-    localStorage.removeItem('conf')
+    localStorage.clear()
     set({ nit: '' })
   },
   onLoginUser: (userName, userId, token) => {
@@ -44,10 +43,12 @@ export const useAuthStore = create<State & Action>((set) => ({
     set({ userName, userId, token, isLogged: true })
   },
   onLogout: () => {
-    set({ userName: null, userId: null, token: null, isLogged: false })
-    localStorage.removeItem('user')
-    localStorage.removeItem('conf')
-    localStorage.removeItem('nit')
+    set({ userName: null, userId: null, token: null, isLogged: false, nit: '', conf: '' });
+  
+    // Elimina las claves específicas de localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('nit');
+    localStorage.removeItem('conf');
   }
 
 }));

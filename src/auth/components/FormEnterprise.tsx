@@ -27,10 +27,7 @@ export const FormEnterprise = () => {
       setError(null); // Limpia errores previos
       try {
         // Realiza la petición a la API
-        // console.log(nit)
-        const response = await apiService.post("/auth", { NIT: nit, APPNAME: appName });
-        console.log("Respuesta de la API:", response.data);
-        
+        const response = await apiService.post("/auth", { NIT: nit, APPNAME: appName });        
         if (response.data.success) {
           // Si el NIT existe, actualiza el estado global          
           updateNit(nit);
