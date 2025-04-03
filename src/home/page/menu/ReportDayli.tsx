@@ -16,20 +16,21 @@ export function ReportDaily() {
   const [almacenData, setAlmacenData] = useState<any>(null); // Datos relacionados al almacén seleccionado
   const { apiService } = useApi();
 
-  const [products, setProducts] = useState([
-    { id: "1", name: "Producto A", inventory: 10 },
-    { id: "2", name: "Producto B", inventory: 5 },
-    { id: "3", name: "Producto C", inventory: 20 },
-  ]);
 
-  const [quantities, setQuantities] = useState<{ [key: string]: number }>({
-    "Huevos A": 0,
-    "Huevos B": 0,
-    "Huevos C": 0,
-    "Huevos D": 0,
-    "Huevos E": 0,
-    "Huevos F": 0,
-  });
+  const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
+
+  useEffect(() => {
+    if (almacenData?.GrupoIdGranjaProduccion) {
+      const initialQuantities = almacenData.GrupoIdGranjaProduccion.reduce(
+        (acc: { [key: string]: number }, product: { name: string }) => {
+          acc[product.name] = 0; // Inicializa todas las cantidades en 0
+          return acc;
+        },
+        {}
+      );
+      setQuantities(initialQuantities);
+    }
+  }, [almacenData]);
 
   // Función para obtener los datos de los almacenes
   useEffect(() => {
@@ -62,6 +63,26 @@ export function ReportDaily() {
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string) => {
     setSelectedOption(almacenid);
+
+    // Limpiar todos los inputs visibles
+    const inputs = document.querySelectorAll("input");
+    inputs.forEach((input) => {
+      if (input.offsetParent !== null) {
+      input.value = "";
+      }
+    });
+
+    // Limpiar las cantidades de producción basadas en los productos de producción disponibles
+    if (almacenData?.GrupoIdGranjaProduccion) {
+      const resetQuantities = almacenData.GrupoIdGranjaProduccion.reduce(
+      (acc: { [key: string]: number }, product: { name: string }) => {
+        acc[product.name] = 0; // Establece la cantidad en 0 para cada producto
+        return acc;
+      },
+      {}
+      );
+      setQuantities(resetQuantities);
+    }
     try {
       const response = await apiService.get(`/products/productgrouped/warehouse/${almacenid}`);
       setAlmacenData(response.data.products); // Guarda los datos relacionados al almacén seleccionado
@@ -71,37 +92,56 @@ export function ReportDaily() {
   };
 
   // Función para manejar el envío del formulario
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const isValid = selectedDate && selectedOption;
+    console.log("isValid:", isValid, selectedDate, selectedOption);
 
-    if (isValid) {
-      const observations = (document.querySelector("textarea") as HTMLTextAreaElement)?.value || "";
-      const filledInputs = Array.from(document.querySelectorAll("input"))
-      .filter((input) => input.value.trim() !== "")
+    const observations = (document.querySelector("textarea") as HTMLTextAreaElement)?.value || "";
+    const filledInputs = Array.from(document.querySelectorAll("input"))
+      .filter((input) => input.value.trim() !== "" && input.offsetParent !== null) // Verifica que el input tenga valor y sea visible
       .map((input) => ({
-        id: input.id,
-        value: input.value,
+      id: input.id,
+      value: input.value,
       }));
 
-      console.log("Fecha seleccionada:", selectedDate);
-      console.log("Lote seleccionado:", selectedOption);
-      console.log("Observaciones:", observations);
-      console.log("Inputs llenados:", filledInputs);
+    console.log("Fecha seleccionada:", selectedDate);
+    console.log("Lote seleccionado:", selectedOption);
+    console.log("Observaciones:", observations);
+    console.log("Inputs llenados:", filledInputs);
 
-      setAlertMessage({
-      title: "¡Éxito!",
-      description: "La información se guardó satisfactoriamente.",
-      });
-      setIsAlertOpen(true);
-    } else {
-      setAlertMessage({
-      title: "¡Error!",
-      description: "Por favor, completa todos los campos requeridos.",
-      });
-      setIsAlertOpen(true);
+    const requestData = {
+      fecha: selectedDate,
+      lote: selectedOption,
+      observaciones: observations.trim() ? observations : undefined,
+      productos: filledInputs,
+    };
+
+    if (!requestData.observaciones) {
+      delete requestData.observaciones; // Elimina el campo si está vacío
     }
+
+    try {
+      const response = await apiService.post("/products/saveReport", {requestData: requestData});
+      console.log("Respuesta de la API:", response.data);
+      if (response.status === 200) {
+        setAlertMessage({
+          title: "¡Éxito!",
+          description: "La información se guardó satisfactoriamente.",
+        });
+        setIsAlertOpen(true);
+      }
+    } catch (error) {
+      console.error("Error al enviar los datos:", error);
+      setAlertMessage({
+      title: "Error",
+      description: "Hubo un problema al guardar la información.",
+      });
+      setIsAlertOpen(true);
+      return;
+    }
+    
   };
 
   const handleInputChange = (productId: string, value: string) => {
@@ -170,23 +210,22 @@ export function ReportDaily() {
           </div>
         )}
 
-        <div className="">
-          <h6 className="text-2xl font-bold mb-4">Producción</h6>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {almacenData?.GrupoIdGranjaProduccion?.map((product: { productId: Key | null | undefined; name: string; }) => (
-            <div key={product.productId} className="flex items-center space-x-2">
-              <ProductionProduct
+        {almacenData?.GrupoIdGranjaProduccion?.length > 0 && (
+          <div className="">
+            <h6 className="text-2xl font-bold mb-4">Producción</h6>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {almacenData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
+          <div key={product.productId} className="flex items-center space-x-2">
+            <ProductionProduct
               productName={product.name}
-              onQuantityChange={(quantity) => handleQuantityChange(product.productId?.toString() || "", quantity)}
-              />
-            </div>
-            )) || (
-            <div className="text-gray-500">
-              No hay datos de producción disponibles.
-            </div>
-            )}
+              onQuantityChange={(quantity) => handleQuantityChange(product.name, Number(quantity))}
+              productId={product.productId?.toString() || ""}
+            />
           </div>
-        </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="">
           <h6 className="text-xl font-bold mb-4">Observaciones</h6>

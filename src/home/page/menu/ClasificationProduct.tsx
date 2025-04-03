@@ -1,23 +1,71 @@
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { Key, useEffect, useState } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
 import { ProductionProduct } from "@/components/ProductionProduct";
 import { Alert } from "@/components/Alert"; // Importa el componente de alerta
 import { ProductClasification } from "@/components/ProductClasification"; // Importa el componente de clasificación de productos
+import { useApi } from "@/hooks/useApiService";
+import { setDefaultOptions } from "date-fns";
 
 export function ClasificationProduct() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(); // Estado para manejar la fecha seleccionada
-  const [selectedOption, setSelectedOption] = useState<string>(""); // Estado para manejar la opción seleccionada
+  const [selectedOption, setSelectedOption] = useState<string>("");
   const [isAlertOpen, setIsAlertOpen] = useState(false); // Estado para controlar la alerta
   const [alertMessage, setAlertMessage] = useState({ title: "", description: "" }); // Mensaje de la alerta
+  const { apiService } = useApi();
+  const [almacenData, setAlmacenData] = useState<any>(null); // Datos relacionados al almacén seleccionado
+  const [options, setOptions] = useState<{ value: string; label: string }[]>([]); // Opciones del select
 
-  // Opciones para el select de lotes
-  const options = [
-    { value: "lote1", label: "Lote 1" },
-    { value: "lote2", label: "Lote 2" },
-    { value: "lote3", label: "Lote 3" },
-  ];
+  // Función para obtener los datos de los almacenes
+  useEffect(() => {
+    const fetchAlmacenes = async () => {
+      try {
+        const response = await apiService.get("/warehouses/almacen");
+        // console.log("Respuesta de la API:", response.data.warehouses);
+        const almacenes = response.data.warehouses.map((almacen: any) => ({
+          value: almacen.almacenid,
+          label: almacen.nombre,
+        }));
+        setOptions(almacenes);
+      } catch (error) {
+        console.error("Error al obtener los almacenes:", error);
+      }
+    };
+
+    fetchAlmacenes();
+  }, []);
+
+  // Función para manejar la selección de un almacén
+  const handleAlmacenSelect = async (almacenid: string) => {
+    setSelectedOption(almacenid);
+
+    // Limpiar todos los inputs visibles
+    const inputs = document.querySelectorAll("input");
+    inputs.forEach((input) => {
+      if (input.offsetParent !== null) {
+      input.value = "";
+      }
+    });
+
+    // Limpiar las cantidades de producción basadas en los productos de producción disponibles
+    if (almacenData?.GrupoIdGranjaProduccion) {
+      const resetQuantities = almacenData.GrupoIdGranjaProduccion.reduce(
+      (acc: { [key: string]: number }, product: { name: string }) => {
+        acc[product.name] = 0; // Establece la cantidad en 0 para cada producto
+        return acc;
+      },
+      {}
+      );
+      setQuantities(resetQuantities);
+    }
+    try {
+      const response = await apiService.get(`/products/clasificationProducts/warehouse/${almacenid}`);
+      setAlmacenData(response.data.products); // Guarda los datos relacionados al almacén seleccionado
+    } catch (error) {
+      console.error("Error al obtener los datos del almacén:", error);
+    }
+  };
 
 
   // Estado para manejar las cantidades de producción
@@ -93,94 +141,43 @@ export function ClasificationProduct() {
               id="almacenid"
               options={options}
               placeholder="Selecciona un lote"
-              onChange={(value) => {
-                setSelectedOption(value);
-                console.log(value)
-                const newQuantities = {
-                  "Huevos A": 0,
-                  "Huevos B": 0,
-                  "Huevos C": 0,
-                  "Huevos D": 0,
-                  "Huevos E": 0,
-                  "Huevos F": 0,
-                  ...(value === "lote1"
-                    ? {
-                        "Huevos A": 10,
-                        "Huevos B": 20,
-                        "Huevos C": 30,
-                        "Huevos D": 40,
-                        "Huevos E": 50,
-                        "Huevos F": 60,
-                      }
-                    : value === "lote2"
-                    ? {
-                        "Huevos A": 15,
-                        "Huevos B": 25,
-                        "Huevos C": 35,
-                        "Huevos D": 45,
-                        "Huevos E": 55,
-                        "Huevos F": 65,
-                      }
-                    : value === "lote3"
-                    ? {
-                        "Huevos A": 5,
-                        "Huevos B": 10,
-                        "Huevos C": 15,
-                        "Huevos D": 20,
-                        "Huevos E": 25,
-                        "Huevos F": 30,
-                      }
-                    : {}),
-                };
-
-                setQuantities(newQuantities);
-
-                // Disable inputs for non-editable fields
-                Object.keys(newQuantities).forEach((productName) => {
-                const inputElement = document.getElementById(
-                  `input-${productName}`
-                ) as HTMLInputElement;
-                if (inputElement) {
-                  inputElement.value = newQuantities[productName as keyof typeof newQuantities].toString();
-                  inputElement.disabled = true;
-                }
-                });
-
-                 
-                }
-              }
+              onChange={(value) => handleAlmacenSelect(value)}
             />
           </div>
         </div>
 
-        <div className="">
-          <h6 className="text-2xl font-bold mb-4">Producción</h6>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {Object.keys(quantities).map((productName) => (
-              <div key={productName} className="flex items-center space-x-2">
-                <ProductionProduct
-                  productName={productName}
-                  onQuantityChange={(quantity) => handleQuantityChange(productName, quantity)}
-                />
-              </div>
-
-            ))}
-          </div>
-        </div>
-
-        <div className="">
-          <h6 className="text-2xl font-bold mb-4">Clasificación de Productos</h6>
-          <div className="space-y-4">
-            {productsClas.map((product) => (
-              <ProductClasification
-                key={product.id}
+        {almacenData?.GrupoIdGranjaProduccion?.length > 0 && (
+            <div className="">
+              <h6 className="text-2xl font-bold mb-4">Producción</h6>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {almacenData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
+            <div key={product.productId} className="flex items-center space-x-2">
+              <ProductionProduct
                 productName={product.name}
-                quantity={product.quantity}
-                onQuantityChange={(quantity) => handleQuantityChangeProduct(product.id, quantity)}
+                onQuantityChange={(quantity) => handleQuantityChange(product.name, Number(quantity))}
+                productId={product.productId?.toString() || ""}
               />
-            ))}
+            </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+        {almacenData?.GrupoIdGranjaProduccion?.length > 0 && (
+          <div className="">
+            <h6 className="text-2xl font-bold mb-4">Clasificación de Productos</h6>
+            <div className="space-y-4">
+              {almacenData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
+          <ProductClasification
+            key={product.productId}
+            productName={product.name}
+            quantity={quantities[product.name] || 0}
+            onQuantityChange={(quantity) => handleQuantityChange(product.name, quantity)}
+          />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         <Button type="submit" variant={"secondary"} className="w-full">
           Enviar

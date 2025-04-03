@@ -3,21 +3,23 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 interface ProductionProductProps {
+  productId: string; // ID del producto
   productName: string; // Nombre del producto
-  onQuantityChange: (quantity: number) => void; // Función para manejar el cambio de cantidad
+  onQuantityChange: (productId: string, quantity: number) => void; // Función para manejar el cambio de cantidad
 }
 
 export const ProductionProduct: React.FC<ProductionProductProps> = ({
+  productId,
   productName,
   onQuantityChange,
 }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    onQuantityChange(isNaN(value) ? 0 : value); // Llama a la función con la cantidad ingresada
+    onQuantityChange(productId, isNaN(value) ? 0 : value); // Llama a la función con el ID del producto y la cantidad ingresada
   };
 
   return (
-    <div className=" p-1 border rounded-md shadow-sm">
+    <div className="p-1 border rounded-md shadow-sm">
       {/* Nombre del producto */}
       <Label className="text-sm font-medium text-gray-700 col-span-1">{productName}</Label>
 
@@ -27,7 +29,7 @@ export const ProductionProduct: React.FC<ProductionProductProps> = ({
         placeholder={`Cant ${productName}`}
         onChange={handleInputChange}
         className="mt-1 col-span-3"
-        id={`input-${productName}`}
+        id={`input-${productId}`}
       />
     </div>
   );
