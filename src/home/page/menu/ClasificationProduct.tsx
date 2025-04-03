@@ -14,18 +14,18 @@ export function ClasificationProduct() {
   const [isAlertOpen, setIsAlertOpen] = useState(false); // Estado para controlar la alerta
   const [alertMessage, setAlertMessage] = useState({ title: "", description: "" }); // Mensaje de la alerta
   const { apiService } = useApi();
-  const [almacenData, setAlmacenData] = useState<any>(null); // Datos relacionados al almacén seleccionado
+  const [warehousesData, setAlmacenData] = useState<any>(null); // Datos relacionados al almacén seleccionado
   const [options, setOptions] = useState<{ value: string; label: string }[]>([]); // Opciones del select
 
   // Función para obtener los datos de los almacenes
   useEffect(() => {
     const fetchAlmacenes = async () => {
       try {
-        const response = await apiService.get("/warehouses/almacen");
+        const response = await apiService.get("/warehouses");
         // console.log("Respuesta de la API:", response.data.warehouses);
         const almacenes = response.data.warehouses.map((almacen: any) => ({
-          value: almacen.almacenid,
-          label: almacen.nombre,
+          value: almacen.id,
+          label: almacen.name,
         }));
         setOptions(almacenes);
       } catch (error) {
@@ -49,8 +49,8 @@ export function ClasificationProduct() {
     });
 
     // Limpiar las cantidades de producción basadas en los productos de producción disponibles
-    if (almacenData?.GrupoIdGranjaProduccion) {
-      const resetQuantities = almacenData.GrupoIdGranjaProduccion.reduce(
+    if (warehousesData?.GrupoIdGranjaProduccion) {
+      const resetQuantities = warehousesData.GrupoIdGranjaProduccion.reduce(
       (acc: { [key: string]: number }, product: { name: string }) => {
         acc[product.name] = 0; // Establece la cantidad en 0 para cada producto
         return acc;
@@ -146,11 +146,11 @@ export function ClasificationProduct() {
           </div>
         </div>
 
-        {almacenData?.GrupoIdGranjaProduccion?.length > 0 && (
+        {warehousesData?.GrupoIdGranjaProduccion?.length > 0 && (
             <div className="">
               <h6 className="text-2xl font-bold mb-4">Producción</h6>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {almacenData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
+                {warehousesData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
             <div key={product.productId} className="flex items-center space-x-2">
               <ProductionProduct
                 productName={product.name}
@@ -163,11 +163,11 @@ export function ClasificationProduct() {
             </div>
           )}
 
-        {almacenData?.GrupoIdGranjaProduccion?.length > 0 && (
+        {warehousesData?.GrupoIdGranjaProduccion?.length > 0 && (
           <div className="">
             <h6 className="text-2xl font-bold mb-4">Clasificación de Productos</h6>
             <div className="space-y-4">
-              {almacenData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
+              {warehousesData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
           <ProductClasification
             key={product.productId}
             productName={product.name}

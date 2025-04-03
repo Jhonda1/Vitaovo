@@ -13,15 +13,15 @@ export function ReportDaily() {
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState({ title: "", description: "" });
   const [options, setOptions] = useState<{ value: string; label: string }[]>([]); // Opciones del select
-  const [almacenData, setAlmacenData] = useState<any>(null); // Datos relacionados al almacén seleccionado
+  const [warehousesData, setAlmacenData] = useState<any>(null); // Datos relacionados al almacén seleccionado
   const { apiService } = useApi();
 
 
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
 
   useEffect(() => {
-    if (almacenData?.GrupoIdGranjaProduccion) {
-      const initialQuantities = almacenData.GrupoIdGranjaProduccion.reduce(
+    if (warehousesData?.GrupoIdGranjaProduccion) {
+      const initialQuantities = warehousesData.GrupoIdGranjaProduccion.reduce(
         (acc: { [key: string]: number }, product: { name: string }) => {
           acc[product.name] = 0; // Inicializa todas las cantidades en 0
           return acc;
@@ -30,17 +30,17 @@ export function ReportDaily() {
       );
       setQuantities(initialQuantities);
     }
-  }, [almacenData]);
+  }, [warehousesData]);
 
   // Función para obtener los datos de los almacenes
   useEffect(() => {
     const fetchAlmacenes = async () => {
       try {
-        const response = await apiService.get("/warehouses/almacen");
+        const response = await apiService.get("/warehouses");
         // console.log("Respuesta de la API:", response.data.warehouses);
         const almacenes = response.data.warehouses.map((almacen: any) => ({
-          value: almacen.almacenid,
-          label: almacen.nombre,
+          value: almacen.id,
+          label: almacen.name,
         }));
         setOptions(almacenes);
       } catch (error) {
@@ -53,7 +53,6 @@ export function ReportDaily() {
 
   // Función para manejar el cambio de cantidad de producción
   const handleQuantityChange = (productName: string, quantity: number) => {
-    console.log(`Cantidad de ${productName} cambiada a: ${quantity}`);
     setQuantities((prev) => ({
       ...prev,
       [productName]: quantity,
@@ -73,8 +72,8 @@ export function ReportDaily() {
     });
 
     // Limpiar las cantidades de producción basadas en los productos de producción disponibles
-    if (almacenData?.GrupoIdGranjaProduccion) {
-      const resetQuantities = almacenData.GrupoIdGranjaProduccion.reduce(
+    if (warehousesData?.GrupoIdGranjaProduccion) {
+      const resetQuantities = warehousesData.GrupoIdGranjaProduccion.reduce(
       (acc: { [key: string]: number }, product: { name: string }) => {
         acc[product.name] = 0; // Establece la cantidad en 0 para cada producto
         return acc;
@@ -111,12 +110,15 @@ export function ReportDaily() {
     console.log("Observaciones:", observations);
     console.log("Inputs llenados:", filledInputs);
 
-    const requestData = {
+    const requestData: any = {
       fecha: selectedDate,
       lote: selectedOption,
       observaciones: observations.trim() ? observations : undefined,
-      productos: filledInputs,
     };
+
+    if (filledInputs.length > 0) {
+      requestData.productos = filledInputs;
+    }
 
     if (!requestData.observaciones) {
       delete requestData.observaciones; // Elimina el campo si está vacío
@@ -173,49 +175,40 @@ export function ReportDaily() {
           </div>
         </div>
 
-          {almacenData?.GrupoIdGranjaAnimales?.length > 0 && (
             <div className="">
                 <h6 className="text-xl font-bold mb-4">Mortalidad</h6>
               <ProductList
-                products={almacenData?.GrupoIdGranjaAnimales || []}
+                products={warehousesData?.GrupoIdGranjaAnimales || []}
                 onInputChange={(productId, value) => handleInputChange(productId, value)}
               />
             </div>
-          )}
-        {almacenData?.GrupoIdGranjaMedicamentos?.length > 0 && (
           <div className="">
             <h6 className="text-xl font-bold mb-4">Medicamentos</h6>
             <ProductList
-              products={almacenData?.GrupoIdGranjaMedicamentos || []}
+              products={warehousesData?.GrupoIdGranjaMedicamentos || []}
               onInputChange={(productId, value) => handleInputChange(productId, value)}
             />
           </div>
-        )}
-        {almacenData?.GrupoIdGranjaAlimentos?.length > 0 && (
           <div className="">
             <h6 className="text-xl font-bold mb-4">Alimentos</h6>
             <ProductList
-              products={almacenData?.GrupoIdGranjaAlimentos || []}
+              products={warehousesData?.GrupoIdGranjaAlimentos || []}
               onInputChange={(productId, value) => handleInputChange(productId, value)}
             />
           </div>
-        )}
-        {almacenData?.GrupoIdGranjaCalcio?.length > 0 && (
           <div className="">
             <h6 className="text-xl font-bold mb-4">Calcio</h6>
             <ProductList
-              products={almacenData?.GrupoIdGranjaCalcio || []}
+              products={warehousesData?.GrupoIdGranjaCalcio || []}
               onInputChange={(productId, value) => handleInputChange(productId, value)}
             />
           </div>
-        )}
 
-        {almacenData?.GrupoIdGranjaProduccion?.length > 0 && (
           <div className="">
             <h6 className="text-2xl font-bold mb-4">Producción</h6>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {almacenData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
-          <div key={product.productId} className="flex items-center space-x-2">
+            {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {warehousesData?.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
+            <div key={product.productId} className="flex items-center space-x-2">
             <ProductionProduct
               productName={product.name}
               onQuantityChange={(quantity) => handleQuantityChange(product.name, Number(quantity))}
@@ -223,9 +216,8 @@ export function ReportDaily() {
             />
           </div>
               ))}
-            </div>
+            </div> */}
           </div>
-        )}
 
         <div className="">
           <h6 className="text-xl font-bold mb-4">Observaciones</h6>
