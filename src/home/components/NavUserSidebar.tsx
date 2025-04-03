@@ -1,9 +1,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent,  DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar";
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, } from "@/components/ui/sidebar";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import UserLogged from '../../assets/Logo.png';
 import { useAuthStore } from "@/store/useAuthStore";
+import { useSidebar } from "@/hooks/use-sidebar";
 export function NavUserSidebar(){
   const  userName =  useAuthStore((state)=> state.userName)
   const { isMobile } = useSidebar()

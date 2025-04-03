@@ -98,13 +98,13 @@ export const FormUser = () => {
         </CardContent>
         <CardFooter className="flex justify-between">
           <Button
-            variant="secondary"
+            
             className="w-2/5"
             onClick={removeNitStore}
           >
             Regresar
           </Button>
-          <Button className="w-2/5" variant="secondary" onClick={validateUser}>Acceder</Button>
+          <Button className="w-2/5"  onClick={validateUser}>Acceder</Button>
         </CardFooter>
         <BorderBeam
           duration={8}
