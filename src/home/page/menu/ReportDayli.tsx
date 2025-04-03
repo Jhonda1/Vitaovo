@@ -176,47 +176,60 @@ export function ReportDaily() {
         </div>
 
             <div className="">
-                <h6 className="text-xl font-bold mb-4">Mortalidad</h6>
-              <ProductList
-                products={warehousesData?.GrupoIdGranjaAnimales || []}
-                onInputChange={(productId, value) => handleInputChange(productId, value)}
-              />
+              <h6 className="text-xl font-bold mb-4">Mortalidad</h6>
+              {warehousesData?.GrupoIdGranjaAnimales?.length > 0 ? (
+                <ProductList
+                  products={warehousesData.GrupoIdGranjaAnimales}
+                  onInputChange={(productId, value) => handleInputChange(productId, value)}
+                />
+              ) : (
+              <p className="text-gray-500">No hay productos disponibles.</p>
+              )}
             </div>
           <div className="">
             <h6 className="text-xl font-bold mb-4">Medicamentos</h6>
-            <ProductList
-              products={warehousesData?.GrupoIdGranjaMedicamentos || []}
-              onInputChange={(productId, value) => handleInputChange(productId, value)}
-            />
+            {warehousesData?.GrupoIdGranjaMedicamentos?.length > 0 ? (
+              <ProductList
+                products={warehousesData?.GrupoIdGranjaMedicamentos || []}
+                onInputChange={(productId, value) => handleInputChange(productId, value)}
+              />
+            ) : (
+              <p className="text-gray-500">No hay productos disponibles.</p>
+            )}
           </div>
           <div className="">
             <h6 className="text-xl font-bold mb-4">Alimentos</h6>
-            <ProductList
-              products={warehousesData?.GrupoIdGranjaAlimentos || []}
-              onInputChange={(productId, value) => handleInputChange(productId, value)}
-            />
+            {warehousesData?.GrupoIdGranjaAlimentos?.length > 0 ? (
+              <ProductList
+                products={warehousesData?.GrupoIdGranjaAlimentos || []}
+                onInputChange={(productId, value) => handleInputChange(productId, value)}
+              />
+            ) : (
+              <p className="text-gray-500">No hay productos disponibles.</p>
+            )}
           </div>
           <div className="">
             <h6 className="text-xl font-bold mb-4">Calcio</h6>
-            <ProductList
-              products={warehousesData?.GrupoIdGranjaCalcio || []}
-              onInputChange={(productId, value) => handleInputChange(productId, value)}
-            />
+            {warehousesData?.GrupoIdGranjaCalcio?.length > 0 ? (
+              <ProductList
+                products={warehousesData?.GrupoIdGranjaCalcio || []}
+                onInputChange={(productId, value) => handleInputChange(productId, value)}
+              />
+            ) : (
+              <p className="text-gray-500">No hay productos disponibles.</p>
+            )}
           </div>
 
           <div className="">
             <h6 className="text-2xl font-bold mb-4">Producción</h6>
-            {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {warehousesData?.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
-            <div key={product.productId} className="flex items-center space-x-2">
-            <ProductionProduct
-              productName={product.name}
-              onQuantityChange={(quantity) => handleQuantityChange(product.name, Number(quantity))}
-              productId={product.productId?.toString() || ""}
-            />
-          </div>
-              ))}
-            </div> */}
+            <div className="grid  gap-4">
+                <div className="flex items-center space-x-2">
+                  <ProductionProduct
+                  onQuantityChange={(quantity) => handleQuantityChange('productName', Number(quantity))}
+                  productId={'productName'} productName={""}                  
+                  />
+                </div>
+            </div>
           </div>
 
         <div className="">

@@ -34,11 +34,18 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
 
           {/* Input con placeholder dinámico */}
             <div className="w-1/3">
-            <Input
+              <Input
               id={`${product.productId}`}
               placeholder={`Consumo ${product.name}`}
-              onChange={(e) => onInputChange(product.productId, e.target.value)}
-            />
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                if (!isNaN(value) && value <= product.inventory) {
+                onInputChange(product.productId, e.target.value);
+                } else if (isNaN(value)) {
+                onInputChange(product.productId, "");
+                }
+              }}
+              />
             </div>
         </div>
       ))}

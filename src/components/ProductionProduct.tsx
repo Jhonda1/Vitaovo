@@ -10,7 +10,6 @@ interface ProductionProductProps {
 
 export const ProductionProduct: React.FC<ProductionProductProps> = ({
   productId,
-  productName,
   onQuantityChange,
 }) => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,18 +18,31 @@ export const ProductionProduct: React.FC<ProductionProductProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border rounded-md shadow-sm bg-white">
-      {/* Nombre del producto */}
-      <Label className="text-sm font-medium text-gray-700 col-span-1">{productName}</Label>
-
-      {/* Input para la cantidad */}
-      <Input
+    <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
+      {/* Generar inputs con labels específicos */}
+      {[
+      { label: "Huevos", id: "huevos" },
+      { label: "Picado", id: "picado" },
+      { label: "Forro", id: "forro" },
+      { label: "Quebrado", id: "quebrado" },
+      { label: "Total Huevos", id: "total" },
+      ].map(({ label, id }) => (
+      <div key={id} className="flex flex-col items-center">
+        <Label
+        htmlFor={`input-${productId}-${id}`}
+        className="text-sm font-medium text-gray-700"
+        >
+        {label}
+        </Label>
+        <Input
         type="text"
-        placeholder={`Cant ${productName}`}
+        placeholder={label}
         onChange={handleInputChange}
-        className="mt-1 col-span-3"
-        id={`input-${productId}`}
-      />
+        className="mt-1"
+        id={`input-${productId}-${id}`}
+        />
+      </div>
+      ))}
     </div>
   );
 };

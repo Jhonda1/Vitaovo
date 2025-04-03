@@ -146,27 +146,22 @@ export function ClasificationProduct() {
           </div>
         </div>
 
-        {warehousesData?.GrupoIdGranjaProduccion?.length > 0 && (
-            <div className="">
-              <h6 className="text-2xl font-bold mb-4">Producción</h6>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {warehousesData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
-            <div key={product.productId} className="flex items-center space-x-2">
-              <ProductionProduct
-                productName={product.name}
-                onQuantityChange={(quantity) => handleQuantityChange(product.name, Number(quantity))}
-                productId={product.productId?.toString() || ""}
-              />
+        <div className="">
+            <h6 className="text-2xl font-bold mb-4">Producción</h6>
+            <div className="grid  gap-4">
+                <div className="flex items-center space-x-2">
+                  <ProductionProduct
+                  onQuantityChange={(quantity) => handleQuantityChange('productName', Number(quantity))}
+                  productId={'productName'} productName={""}                  
+                  />
+                </div>
             </div>
-                ))}
-              </div>
-            </div>
-          )}
+        </div>
 
         {warehousesData?.GrupoIdGranjaProduccion?.length > 0 && (
           <div className="">
             <h6 className="text-2xl font-bold mb-4">Clasificación de Productos</h6>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {warehousesData.GrupoIdGranjaProduccion.map((product: { productId: Key | null | undefined; name: string; }) => (
           <ProductClasification
             key={product.productId}
