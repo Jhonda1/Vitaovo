@@ -1,27 +1,32 @@
 import { createAxiosInstance } from "@/api/axiosInstance";
+
 export interface ApiServicesConfig {
-  headers?: {};
+  headers?: Record<string, string>;
 }
 
+export type ApiServiceType = {
+  post: (url: string, dataRequest: unknown) => Promise<unknown>;
+  get: (url: string) => Promise<unknown>;
+};
+
 export const useApi = () => {
-    const envieronment = import.meta.env.VITE_URLAPI;
-    const urlApi = localStorage.getItem('urlApi') ? localStorage.getItem('urlApi') : envieronment;
-    const api = createAxiosInstance(urlApi);
-    const apiServices = () => {
-    const post = (url: any, dataRequest: any) => {
-      return api
-        .post(url, dataRequest)
-        .catch((e: any) => {
-          throw e;
-        });
+  const envieronment = import.meta.env.VITE_URLAPI;
+  const urlApi = localStorage.getItem("urlApi")
+    ? localStorage.getItem("urlApi")
+    : envieronment;
+  const api = createAxiosInstance(urlApi);
+  
+  const apiServices = (): ApiServiceType => {
+    const post = (url: string, dataRequest: unknown) => {
+      return api.post(url, dataRequest).catch((error: Error) => {
+        throw error;
+      });
     };
 
-    const get = (url: any) => {
-      return api
-        .get(url)
-        .catch((e: any) => {
-          throw e;
-        });
+    const get = (url: string) => {
+      return api.get(url).catch((error: Error) => {
+        throw error;
+      });
     };
 
     return {

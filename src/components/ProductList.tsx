@@ -1,11 +1,8 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Product } from "@/types";
 
-interface Product {
-  productId: string; // Identificador único del producto
-  name: string; // Nombre del producto
-  inventory: number; // Inventario actual del producto
-}
+
 
 interface ProductListProps {
   products: Product[]; // Lista de productos

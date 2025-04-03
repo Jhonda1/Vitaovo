@@ -1,6 +1,6 @@
 import { ReportDailyIcon, ClasificationProductIcon } from "@/components/icon"
 import { itemsSidebarMenu } from "../constants/enums"
-import { ReportDaily } from "../home/page/menu/ReportDayli"
+import { ReportDaily } from "../home/page/menu/ReportDaily"
 import { ClasificationProduct } from "../home/page/menu/ClasificationProduct"
 import { useSidebarMenuStore } from "@/store/useSidebarMenuStore"
 
