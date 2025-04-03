@@ -83,7 +83,6 @@ export const FormEnterprise = () => {
         <CardFooter className="flex justify-center items-center">
           <Button
             className="w-4/6 m-0 p-0"
-            variant="secondary"
             onClick={validateNit}
             disabled={loading} // Deshabilita el botón mientras se realiza la petición
           >

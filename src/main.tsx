@@ -4,8 +4,11 @@ import { AppRouter } from "./routes/index.tsx"; // Ensure the file exports AppRo
 
 
 import "./index.css";
+import { ThemeProvider } from "./components/ThemeProvider.tsx";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <AppRouter />
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <AppRouter />
+    </ThemeProvider>
   </StrictMode>
 );
