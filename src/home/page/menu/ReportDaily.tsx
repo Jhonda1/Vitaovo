@@ -39,7 +39,6 @@ export function ReportDaily() {
  
   /* HOOKS */
   const { apiService } = useApi();
-
   const warehouseService = new WarehouseService(apiService);
   const productService = new ProductsService(apiService);
 
@@ -75,10 +74,14 @@ export function ReportDaily() {
 
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string, name: string) => {
+    console.log("almacenid",selectedOption.id , almacenid)
+
+    // console.log("almacenid",almacenid," name",name)
+
     setSelectedOption({id: almacenid, name: name});
 
     try {
-      const response = await productService.getProductsByWarehouse(almacenid)
+      const response = await productService.getProductsByWarehouse(`${almacenid}?column[]=GrupoIdGranjaMedicamentos&&column[]=GrupoIdGranjaAlimentos&&column[]=GrupoIdGranjaCalcio&&column[]=GrupoIdGranjaAnimales`)
       const {data, status} = response as AxiosResponse;
       if(status === 200){
         setAlmacenData(data.products);
@@ -94,18 +97,27 @@ export function ReportDaily() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    
-
-
-    const requestData= {
+    // Validar que se haya seleccionado una fecha y un lote pendiente
+    const requestData = {
       fecha: selectedDate,
       lote: selectedOption,
       observaciones: formReportDaily.observation.trim() ? formReportDaily.observation : undefined,
+      produccion: {
+      huevos: formReportDaily.eggs.trim() ? formReportDaily.eggs : undefined,
+      picado: formReportDaily.eggs_lining.trim() ? formReportDaily.eggs_lining : undefined,
+      forro: formReportDaily.eggs_chopped.trim() ? formReportDaily.eggs_chopped : undefined,
+      quebrado: formReportDaily.eggs_broken.trim() ? formReportDaily.eggs_broken : undefined,
+      },
+      productos: {
+      animales: warehousesData.GrupoIdGranjaAnimales?.filter(product => product.value.trim()) || [],
+      medicamentos: warehousesData.GrupoIdGranjaMedicamentos?.filter(product => product.value.trim()) || [],
+      alimentos: warehousesData.GrupoIdGranjaAlimentos?.filter(product => product.value.trim()) || [],
+      calcio: warehousesData.GrupoIdGranjaCalcio?.filter(product => product.value.trim()) || [],
+      },
     };
-    
-
+  
     try {
-      const response = await apiService.post("/products/saveReport", {
+      const response = await apiService.post("/products/inserProductInventari", {
         requestData: requestData,
       });
       console.log("Respuesta de la API:", response.data);
@@ -127,13 +139,16 @@ export function ReportDaily() {
     }
   };
 
-
   
   let totalEggs = Number(formReportDaily.eggs) + Number(formReportDaily.eggs_lining) + Number(formReportDaily.eggs_chopped) + Number(formReportDaily.eggs_broken);
   if(isNaN(totalEggs)) {
     totalEggs = 0;
   }
-  console.log(totalEggs)
+  // console.log(totalEggs)
+  function handleInputChange(productId: string, value: string): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <div className="w-full p-4">
       <form className="w-full space-y-4" onSubmit={handleSubmit}>

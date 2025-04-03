@@ -7,6 +7,7 @@ interface FormReportDaily {
 }
 
 interface Product {
+  value: any;
   productId: string; // Identificador único del producto
   name: string; // Nombre del producto
   inventory: number; // Inventario actual del producto

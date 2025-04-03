@@ -11,6 +11,7 @@ import { ProductsService } from "@/services/products";
 import { FormReportDaily, WarehouseData } from "@/types";
 import { AxiosResponse } from "axios";
 import { FormProduction } from "@/home/components/FormProduction";
+import { ProductionProduct } from "@/components/ProductionProduct";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation' : '',
@@ -60,17 +61,22 @@ export function ClasificationProduct() {
     fetchAlmacenes();
   }, []);
 
-    useEffect(() => {
-      /* Limpiar los inputs de producción */
-      setFormReportDaily(initialFormReportDaily)
-    },[selectedOption])
+  useEffect(() => {
+  if (selectedOption.id) {
+    console.log("almacenid actualizado:", selectedOption.id);
+  }
+}, [selectedOption.id]);
+
 
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string, name: string) => {
+    // debugger; // Pausa la ejecución para inspeccionar el estado actual
+    if (selectedOption.id === almacenid) return; 
+    console.log("almacenid",selectedOption.id , almacenid)
     setSelectedOption({id: almacenid, name: name});
 
     try {
-      const response = await productService.getProductsByWarehouse(almacenid)
+      const response = await productService.getProductsByWarehouse(`${almacenid}?column[]=GrupoIdGranjaProduccion`)
       const {data, status} = response as AxiosResponse;
       console.log("Respuesta de la API:", data);
       if(status === 200){
@@ -79,25 +85,6 @@ export function ClasificationProduct() {
     } catch (error) {
       console.error("Error al obtener los datos del almacén:", error);
     }
-  };
-
-
-  // Estado para manejar las cantidades de producción
-  const [quantities, setQuantities] = useState<{ [key: string]: number }>({
-    "Huevos A": 0,
-    "Huevos B": 0,
-    "Huevos C": 0,
-    "Huevos D": 0,
-    "Huevos E": 0,
-    "Huevos F": 0,
-  });
-
-  // Función para manejar el cambio de cantidad de producción
-  const handleQuantityChange = (productName: string, quantity: number) => {
-    setQuantities((prev) => ({
-      ...prev,
-      [productName]: quantity,
-    }));
   };
 
   // Función para manejar el envío del formulario
@@ -126,6 +113,10 @@ export function ClasificationProduct() {
   let totalEggs = Number(formReportDaily.eggs) + Number(formReportDaily.eggs_lining) + Number(formReportDaily.eggs_chopped) + Number(formReportDaily.eggs_broken);
   if(isNaN(totalEggs)) {
     totalEggs = 0;
+  }
+
+  function handleQuantityChange(arg0: string, quantity: string): void {
+    throw new Error("Function not implemented.");
   }
 
   return (
@@ -171,7 +162,7 @@ export function ClasificationProduct() {
           </div>
         </div>
 
-        {warehousesData?.GrupoIdGranjaProduccion && warehousesData.GrupoIdGranjaProduccion.length > 0 ? (
+        {/* {warehousesData?.GrupoIdGranjaProduccion && warehousesData.GrupoIdGranjaProduccion.length > 0 ? (
           <div className="">
             <h6 className="text-2xl font-bold mb-4">Clasificación de Productos</h6>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -187,7 +178,24 @@ export function ClasificationProduct() {
           </div>
         ) : (
           <p className="text-gray-500">No hay productos disponibles.</p>
-        )}
+        )} */}
+
+        <div className="">
+          <h6 className="text-2xl font-bold mb-4">Clasificacion de Producción</h6>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {warehousesData?.GrupoIdGranjaProduccion?.map((product: { productId: Key | null | undefined; name: string; }) => (
+            <div key={product.productId} className="flex items-center space-x-2">
+              <ProductionProduct
+                  productName={product.name}
+                  onQuantityChange={(quantity) => handleQuantityChange(product.productId?.toString() || "", quantity)} productId={""}              />
+            </div>
+            )) || (
+            <div className="text-gray-500">
+              No hay datos de producción disponibles.
+            </div>
+            )}
+          </div>
+        </div>
 
         <Button type="submit" variant={"secondary"} className="w-full">
           Enviar
