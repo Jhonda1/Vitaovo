@@ -9,9 +9,4 @@ export class WarehouseService {
     return this.apiService.get("/warehouses");
   }
 
-  getDataByWarehouse(warehouseId: string) {
-    return this.apiService.get(
-      `/products/productgrouped/warehouse/${warehouseId}`
-    );
-  }
 }

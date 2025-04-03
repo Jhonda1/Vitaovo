@@ -10,6 +10,7 @@ import { FormProduction } from "@/home/components/FormProduction";
 import { SelectItem } from "@/components/ui/select";
 import { WarehouseService } from "@/services/warehouse";
 import { AxiosResponse } from "axios";
+import { ProductsService } from "@/services/products";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation' : '',
@@ -40,6 +41,7 @@ export function ReportDaily() {
   const { apiService } = useApi();
 
   const warehouseService = new WarehouseService(apiService);
+  const productService = new ProductsService(apiService);
 
 /* EFFECTS */
   useEffect(() => {
@@ -76,7 +78,7 @@ export function ReportDaily() {
     setSelectedOption({id: almacenid, name: name});
 
     try {
-      const response = await warehouseService.getDataByWarehouse(almacenid)
+      const response = await productService.getProductsByWarehouse(almacenid)
       const {data, status} = response as AxiosResponse;
       if(status === 200){
         setAlmacenData(data.products);
@@ -123,11 +125,6 @@ export function ReportDaily() {
       setIsAlertOpen(true);
       return;
     }
-  };
-
-  const handleInputChange = (productId: string, value: string) => {
-    console.log(`Producto ID: ${productId}, Valor: ${value}`);
-    // Aquí puedes manejar el cambio de valor si necesitas actualizar el estado
   };
 
 

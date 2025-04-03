@@ -18,5 +18,6 @@ interface WarehouseData{
   GrupoIdGranjaMedicamentos?: Product[];
   GrupoIdGranjaAlimentos?: Product[];
   GrupoIdGranjaCalcio?: Product[];
+  GrupoIdGranjaProduccion?: Product[];
 }
 export type { FormReportDaily,WarehouseData,Product };

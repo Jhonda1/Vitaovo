@@ -1,9 +1,5 @@
-import axios, { AxiosInstance, AxiosResponse } from "axios";
-import { useAsyncStore } from "../hooks/storeData";
+import axios, { AxiosInstance } from "axios";
 import { toast } from 'sonner';
- // Importa el hook para manejar localStorage
-
-// const { getData, storeData } = useAsyncStore(); // Obtén las funciones del hook
 
 export function createAxiosInstance(URL_API: string): AxiosInstance {
   const axiosInstance = axios.create({
