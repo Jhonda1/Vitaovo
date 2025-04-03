@@ -35,7 +35,7 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
           {/* Input con placeholder dinámico */}
             <div className="w-1/3">
             <Input
-              id={`input-${product.productId}`}
+              id={`${product.productId}`}
               placeholder={`Consumo ${product.name}`}
               onChange={(e) => onInputChange(product.productId, e.target.value)}
             />

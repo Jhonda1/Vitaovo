@@ -19,7 +19,7 @@ export const ProductionProduct: React.FC<ProductionProductProps> = ({
   };
 
   return (
-    <div className="p-1 border rounded-md shadow-sm">
+    <div className="flex items-center justify-between p-4 border rounded-md shadow-sm bg-white">
       {/* Nombre del producto */}
       <Label className="text-sm font-medium text-gray-700 col-span-1">{productName}</Label>
 

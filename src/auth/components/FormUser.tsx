@@ -36,7 +36,6 @@ export const FormUser = () => {
       const response = await apiService.post("/login", { user: loginData.user, password: loginData.password, usuarios: true });
       console.log("Respuesta de la API:", response.data);
       if (response.data && response.data.success) {
-        console.log('Login successful', response.data);
         const user = response.data.user;
         const token = response.data.token;
         onLoginUserStore(user.name, user.id, token);
