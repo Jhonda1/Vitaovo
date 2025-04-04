@@ -100,31 +100,40 @@ export function ReportDaily() {
     e.preventDefault();
 
     // Validar que se haya seleccionado una fecha y un lote pendiente
+    console.log("almacenid", warehousesData?.GrupoIdGranjaAnimales)
     const requestData = {
-      fecha: selectedDate,
+      fecha: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
       lote: selectedOption,
       observaciones: formReportDaily.observation.trim() ? formReportDaily.observation : undefined,
-      produccion: {
-        huevos: formReportDaily.eggs.trim() ? formReportDaily.eggs : undefined,
-        picado: formReportDaily.eggs_lining.trim() ? formReportDaily.eggs_lining : undefined,
-        forro: formReportDaily.eggs_chopped.trim() ? formReportDaily.eggs_chopped : undefined,
-        quebrado: formReportDaily.eggs_broken.trim() ? formReportDaily.eggs_broken : undefined,
-      },
-      productos: {
-        animales: warehousesData.GrupoIdGranjaAnimales?.filter(product => product.value.trim()) || [],
-        medicamentos: warehousesData.GrupoIdGranjaMedicamentos?.filter(product => product.value.trim()) || [],
-        alimentos: warehousesData.GrupoIdGranjaAlimentos?.filter(product => product.value.trim()) || [],
-        calcio: warehousesData.GrupoIdGranjaCalcio?.filter(product => product.value.trim()) || [],
-      },
+      produccion: [
+      { productoid: '000107', cantidad: formReportDaily.eggs.trim() ? formReportDaily.eggs : undefined },
+      { productoid: '000105', cantidad: formReportDaily.eggs_lining.trim() ? formReportDaily.eggs_lining : undefined },
+      { productoid: '000104', cantidad: formReportDaily.eggs_chopped.trim() ? formReportDaily.eggs_chopped : undefined },
+      { productoid: '000103', cantidad: formReportDaily.eggs_broken.trim() ? formReportDaily.eggs_broken : undefined },
+      ],
+      productos: [
+      ...(warehousesData?.GrupoIdGranjaAnimales
+        ?.filter(product => product.qtyToAdd !== undefined)
+        .map(product => ({ productoid: product.productId, cantidad: product.qtyToAdd })) ?? []),
+      ...(warehousesData?.GrupoIdGranjaMedicamentos
+        ?.filter(product => product.qtyToAdd !== undefined)
+        .map(product => ({ productoid: product.productId, cantidad: product.qtyToAdd })) ?? []),
+      ...(warehousesData?.GrupoIdGranjaAlimentos
+        ?.filter(product => product.qtyToAdd !== undefined)
+        .map(product => ({ productoid: product.productId, cantidad: product.qtyToAdd })) ?? []),
+      ...(warehousesData?.GrupoIdGranjaCalcio
+        ?.filter(product => product.qtyToAdd !== undefined)
+        .map(product => ({ productoid: product.productId, cantidad: product.qtyToAdd })) ?? []),
+      ],
     };
 
     try {
       const response = await productService.inserProductInventari({ requestData });
 
-      console.log("Respuesta de la API:", response.data);
       const { data, status } = response as AxiosResponse;
+      console.log("Respuesta de la API:", data);
       if (status === 200) {
-        setWarehouseData(data.products);
+        // setWarehouseData(data.products);
         setAlertMessage({
           title: "¡Éxito!",
           description: "La información se guardó satisfactoriamente.",
@@ -148,18 +157,18 @@ export function ReportDaily() {
     totalEggs = 0;
   }
 function handleInputChange(productId: string, value: string, currentDataKey: string): void {
-  const newWarehouseDateGroup = [...warehousesData[currentDataKey] as Product[]]
+  const newWarehouseDateGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])]
   
   const productOnGroup = newWarehouseDateGroup.find(product => product.productId == productId)
   /* newWarehouseDateGroup.qtyToAdd = value; */
 
   
   if(productOnGroup){
-    if(productOnGroup?.inventory < value) {
-      toast.error("La cantidad supera el inventario disponible ",productOnGroup?.inventory);
-      productOnGroup.qtyToAdd = Number(productOnGroup?.inventory).toFixed(2);
+    if(productOnGroup?.inventory < Number(value)) {
+      toast.error(`La cantidad supera el inventario disponible: ${productOnGroup?.inventory}`);
+      productOnGroup.qtyToAdd = parseFloat(Number(productOnGroup?.inventory).toFixed(2));
     }else{
-      productOnGroup.qtyToAdd = value;
+      productOnGroup.qtyToAdd = parseFloat(value);
     }
   }
   setWarehouseData((prevState) =>({
