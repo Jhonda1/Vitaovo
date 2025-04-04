@@ -1,6 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Product } from "@/types";
+import { formatNumber } from "@/lib/utils";
 
 
 
@@ -10,6 +11,7 @@ interface ProductListProps {
 }
 
 export const ProductList: React.FC<ProductListProps> = ({ products, onInputChange }) => {
+  
   return (
     <div className="flex flex-col gap-4">
       {products.map((product) => (
@@ -19,28 +21,34 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
         >
           {/* Nombre del producto */}
           <div className="flex flex-col">
-            <Label className="font-bold">{product.name}</Label>
-            <span className="text-sm text-gray-500">Información del producto</span>
+            <Label className="font-bold">Información del producto</Label>
+            
+            <span className="text-sm text-gray-500">{product.name}</span>
           </div>
 
           {/* Inventario actual */}
           <div className="text-center">
-            <Label className="font-bold text-center block">{product.inventory}</Label>
-            <span className="text-sm text-gray-500">Inventario actual</span>
+            <Label className="font-bold text-center block">Inventario actual</Label>
+            <span className="text-sm text-gray-500">{formatNumber(product.inventory)}</span>
+            
           </div>
 
           {/* Input con placeholder dinámico */}
+          
             <div className="w-1/3">
+              <Label className="font-bold text-center block">Cantidad</Label>
               <Input
               id={`${product.productId}`}
-              placeholder={`Consumo ${product.name}`}
+              placeholder={`${product.name}`}
+              value={product.qtyToAdd || ""}
               onChange={(e) => {
                 const value = parseInt(e.target.value, 10);
-                if (!isNaN(value) && value <= product.inventory) {
+                
                 onInputChange(product.productId, e.target.value);
+                /* if (!isNaN(value) && value <= product.inventory) {
                 } else if (isNaN(value)) {
-                onInputChange(product.productId, "");
-                }
+                  onInputChange(product.productId, "");
+                } */
               }}
               />
             </div>

@@ -5,25 +5,27 @@ import { CustomSelect } from "@/components/CustomSelect";
 import { ProductList } from "@/components/ProductList";
 import { Alert } from "@/components/Alert";
 import { useApi } from "@/hooks/useApiService";
-import { FormReportDaily, WarehouseData } from "@/types";
+import { FormReportDaily, Product, WarehouseData } from "@/types";
 import { FormProduction } from "@/home/components/FormProduction";
 import { SelectItem } from "@/components/ui/select";
 import { WarehouseService } from "@/services/warehouse";
 import { AxiosResponse } from "axios";
 import { ProductsService } from "@/services/products";
+import { toast } from "sonner";
+
 
 const initialFormReportDaily: FormReportDaily = {
-  'observation' : '',
-  'eggs':'',
-  'eggs_lining':'',
-  'eggs_chopped':'',
-  'eggs_broken':'',
+  'observation': '',
+  'eggs': '',
+  'eggs_lining': '',
+  'eggs_chopped': '',
+  'eggs_broken': '',
 }
 
 export function ReportDaily() {
   /* STATE */
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [selectedOption, setSelectedOption] = useState<{id: string, name: string}>({id: "", name: ""});
+  const [selectedOption, setSelectedOption] = useState<{ id: string, name: string }>({ id: "", name: "" });
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState({
     title: "",
@@ -32,26 +34,26 @@ export function ReportDaily() {
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
   );
-  const [warehousesData, setAlmacenData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
+  const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
 
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
 
- 
+
   /* HOOKS */
   const { apiService } = useApi();
   const warehouseService = new WarehouseService(apiService);
   const productService = new ProductsService(apiService);
 
-/* EFFECTS */
+  /* EFFECTS */
   useEffect(() => {
     // Función para obtener los datos de los almacenes
     const fetchAlmacenes = async () => {
       try {
         const response = await warehouseService.getWarehouses();
-        const {data, status} = response as AxiosResponse;
-        if(status === 200){
+        const { data, status } = response as AxiosResponse;
+        if (status === 200) {
 
-          const almacenes = data.warehouses.map((almacen: {id: string, name: string}) => ({
+          const almacenes = data.warehouses.map((almacen: { id: string, name: string }) => ({
             value: almacen.id,
             label: almacen.name,
           }));
@@ -64,27 +66,27 @@ export function ReportDaily() {
 
     fetchAlmacenes();
   }, []);
-  
+
 
   useEffect(() => {
     /* Limpiar los inputs de producción */
     setFormReportDaily(initialFormReportDaily)
-  },[selectedOption])
+  }, [selectedOption])
 
 
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string, name: string) => {
-    console.log("almacenid",selectedOption.id , almacenid)
+    console.log("almacenid", selectedOption.id, almacenid)
 
     // console.log("almacenid",almacenid," name",name)
 
-    setSelectedOption({id: almacenid, name: name});
+    setSelectedOption({ id: almacenid, name: name });
 
     try {
       const response = await productService.getProductsByWarehouse(`${almacenid}?column[]=GrupoIdGranjaMedicamentos&&column[]=GrupoIdGranjaAlimentos&&column[]=GrupoIdGranjaCalcio&&column[]=GrupoIdGranjaAnimales`)
-      const {data, status} = response as AxiosResponse;
-      if(status === 200){
-        setAlmacenData(data.products);
+      const { data, status } = response as AxiosResponse;
+      if (status === 200) {
+        setWarehouseData(data.products);
       }
     } catch (error) {
       console.error("Error al obtener los datos del almacén:", error);
@@ -103,26 +105,26 @@ export function ReportDaily() {
       lote: selectedOption,
       observaciones: formReportDaily.observation.trim() ? formReportDaily.observation : undefined,
       produccion: {
-      huevos: formReportDaily.eggs.trim() ? formReportDaily.eggs : undefined,
-      picado: formReportDaily.eggs_lining.trim() ? formReportDaily.eggs_lining : undefined,
-      forro: formReportDaily.eggs_chopped.trim() ? formReportDaily.eggs_chopped : undefined,
-      quebrado: formReportDaily.eggs_broken.trim() ? formReportDaily.eggs_broken : undefined,
+        huevos: formReportDaily.eggs.trim() ? formReportDaily.eggs : undefined,
+        picado: formReportDaily.eggs_lining.trim() ? formReportDaily.eggs_lining : undefined,
+        forro: formReportDaily.eggs_chopped.trim() ? formReportDaily.eggs_chopped : undefined,
+        quebrado: formReportDaily.eggs_broken.trim() ? formReportDaily.eggs_broken : undefined,
       },
       productos: {
-      animales: warehousesData.GrupoIdGranjaAnimales?.filter(product => product.value.trim()) || [],
-      medicamentos: warehousesData.GrupoIdGranjaMedicamentos?.filter(product => product.value.trim()) || [],
-      alimentos: warehousesData.GrupoIdGranjaAlimentos?.filter(product => product.value.trim()) || [],
-      calcio: warehousesData.GrupoIdGranjaCalcio?.filter(product => product.value.trim()) || [],
+        animales: warehousesData.GrupoIdGranjaAnimales?.filter(product => product.value.trim()) || [],
+        medicamentos: warehousesData.GrupoIdGranjaMedicamentos?.filter(product => product.value.trim()) || [],
+        alimentos: warehousesData.GrupoIdGranjaAlimentos?.filter(product => product.value.trim()) || [],
+        calcio: warehousesData.GrupoIdGranjaCalcio?.filter(product => product.value.trim()) || [],
       },
     };
-  
+
     try {
       const response = await productService.inserProductInventari({ requestData });
 
       console.log("Respuesta de la API:", response.data);
-      const {data, status} = response as AxiosResponse;
-      if(status === 200){
-        setAlmacenData(data.products);
+      const { data, status } = response as AxiosResponse;
+      if (status === 200) {
+        setWarehouseData(data.products);
         setAlertMessage({
           title: "¡Éxito!",
           description: "La información se guardó satisfactoriamente.",
@@ -140,16 +142,32 @@ export function ReportDaily() {
     }
   };
 
-  
+
   let totalEggs = Number(formReportDaily.eggs) + Number(formReportDaily.eggs_lining) + Number(formReportDaily.eggs_chopped) + Number(formReportDaily.eggs_broken);
-  if(isNaN(totalEggs)) {
+  if (isNaN(totalEggs)) {
     totalEggs = 0;
   }
-  // console.log(totalEggs)
-  function handleInputChange(productId: string, value: string): void {
-    throw new Error("Function not implemented.");
-  }
+function handleInputChange(productId: string, value: string, currentDataKey: string): void {
+  const newWarehouseDateGroup = [...warehousesData[currentDataKey] as Product[]]
+  
+  const productOnGroup = newWarehouseDateGroup.find(product => product.productId == productId)
+  /* newWarehouseDateGroup.qtyToAdd = value; */
 
+  
+  if(productOnGroup){
+    if(productOnGroup?.inventory < value) {
+      toast.error("La cantidad supera el inventario disponible ",productOnGroup?.inventory);
+      productOnGroup.qtyToAdd = Number(productOnGroup?.inventory).toFixed(2);
+    }else{
+      productOnGroup.qtyToAdd = value;
+    }
+  }
+  setWarehouseData((prevState) =>({
+    ...prevState,
+    [currentDataKey]: newWarehouseDateGroup
+  }))
+  
+}
   return (
     <div className="w-full p-4">
       <form className="w-full space-y-4" onSubmit={handleSubmit}>
@@ -170,7 +188,7 @@ export function ReportDaily() {
               onChange={(value) => handleAlmacenSelect(value.split('|')[0], value.split('|')[1])}
             >
               {options.map((option) => (
-                <SelectItem key={option.value} value={option.value+'|'+option.label} defaultChecked={option.value === selectedOption.id}>
+                <SelectItem key={option.value} value={option.value + '|' + option.label} defaultChecked={option.value === selectedOption.id}>
                   {option.label}
                 </SelectItem>
               ))}
@@ -184,7 +202,7 @@ export function ReportDaily() {
             <ProductList
               products={warehousesData.GrupoIdGranjaAnimales}
               onInputChange={(productId, value) =>
-                handleInputChange(productId, value)
+                handleInputChange(productId, value, 'GrupoIdGranjaAnimales')
               }
             />
           ) : (
@@ -197,7 +215,7 @@ export function ReportDaily() {
             <ProductList
               products={warehousesData.GrupoIdGranjaMedicamentos || []}
               onInputChange={(productId, value) =>
-                handleInputChange(productId, value)
+                handleInputChange(productId, value, 'GrupoIdGranjaMedicamentos')
               }
             />
           ) : (
@@ -210,7 +228,7 @@ export function ReportDaily() {
             <ProductList
               products={warehousesData.GrupoIdGranjaAlimentos || []}
               onInputChange={(productId, value) =>
-                handleInputChange(productId, value)
+                handleInputChange(productId, value, 'GrupoIdGranjaAlimentos')
               }
             />
           ) : (
@@ -223,7 +241,7 @@ export function ReportDaily() {
             <ProductList
               products={warehousesData.GrupoIdGranjaCalcio || []}
               onInputChange={(productId, value) =>
-                handleInputChange(productId, value)
+                handleInputChange(productId, value, 'GrupoIdGranjaCalcio')
               }
             />
           ) : (
@@ -236,11 +254,11 @@ export function ReportDaily() {
           <div className="grid  gap-4">
             <div className="flex items-center space-x-2">
               <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
-                <FormProduction id="huevos" label="Huevos" value={formReportDaily.eggs} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs: e.target.value}))} />
-                <FormProduction id="picado" label="Picado" value={formReportDaily.eggs_lining} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_lining: e.target.value}))} />
-                <FormProduction id="forro" label="Forro" value={formReportDaily.eggs_chopped} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_chopped: e.target.value}))} />
-                <FormProduction id="quebrado" label="Quebrado" value={formReportDaily.eggs_broken} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_broken: e.target.value}))} />
-                <FormProduction id="total" label={`Total`} value={totalEggs.toString()} disabled={true}/>
+                <FormProduction id="huevos" label="Huevos" value={formReportDaily.eggs} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: e.target.value }))} />
+                <FormProduction id="picado" label="Picado" value={formReportDaily.eggs_lining} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: e.target.value }))} />
+                <FormProduction id="forro" label="Forro" value={formReportDaily.eggs_chopped} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: e.target.value }))} />
+                <FormProduction id="quebrado" label="Quebrado" value={formReportDaily.eggs_broken} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: e.target.value }))} />
+                <FormProduction id="total" label={`Total`} value={totalEggs.toString()} disabled={true} />
               </div>
             </div>
           </div>
@@ -253,7 +271,7 @@ export function ReportDaily() {
             rows={4}
             value={formReportDaily.observation}
             placeholder="Escribe tus observaciones aquí..."
-            onChange={(e) => setFormReportDaily((prevState)=>({...prevState, observation: e.target.value}))}
+            onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, observation: e.target.value }))}
           />
         </div>
 
