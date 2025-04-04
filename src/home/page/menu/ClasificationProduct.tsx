@@ -62,10 +62,28 @@ export function ClasificationProduct() {
   }, []);
 
   useEffect(() => {
-  if (selectedOption.id) {
-    console.log("almacenid actualizado:", selectedOption.id);
-  }
-}, [selectedOption.id]);
+    if (selectedOption.id) {
+      console.log("almacenid actualizado:", selectedOption.id);
+    }
+  }, [selectedOption.id]);
+
+  useEffect(() => {
+     warehouseService.getProductInventory().then((data) =>{
+
+      const getCantidadById = (id: number) => {
+        const item = data.find((d:any) => d.id === id);
+        return item ? item.cantidad : 0;
+      };
+      
+      setFormReportDaily({
+        eggs: getCantidadById(1),
+        eggs_lining: getCantidadById(2),
+        eggs_chopped: getCantidadById(3),
+        eggs_broken: getCantidadById(4),
+        observation: ""
+      });
+     });
+  }, []);
 
 
   // Función para manejar la selección de un almacén
@@ -152,10 +170,10 @@ export function ClasificationProduct() {
           <div className="grid  gap-4">
             <div className="flex items-center space-x-2">
               <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
-                <FormProduction id="huevos" label="Huevos" value={formReportDaily.eggs} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs: e.target.value}))} />
-                <FormProduction id="picado" label="Picado" value={formReportDaily.eggs_lining} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_lining: e.target.value}))} />
-                <FormProduction id="forro" label="Forro" value={formReportDaily.eggs_chopped} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_chopped: e.target.value}))} />
-                <FormProduction id="quebrado" label="Quebrado" value={formReportDaily.eggs_broken} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_broken: e.target.value}))} />
+                <FormProduction id="huevos" label="Huevos" value={formReportDaily.eggs} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs: e.target.value}))} disabled={true}/>
+                <FormProduction id="picado" label="Picado" value={formReportDaily.eggs_lining} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_lining: e.target.value}))} disabled={true}/>
+                <FormProduction id="forro" label="Forro" value={formReportDaily.eggs_chopped} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_chopped: e.target.value}))} disabled={true}/>
+                <FormProduction id="quebrado" label="Quebrado" value={formReportDaily.eggs_broken} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_broken: e.target.value}))} disabled={true}/>
                 <FormProduction id="total" label={`Total`} value={totalEggs.toString()} disabled={true}/>
               </div>
             </div>

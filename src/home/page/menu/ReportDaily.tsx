@@ -12,6 +12,7 @@ import { WarehouseService } from "@/services/warehouse";
 import { AxiosResponse } from "axios";
 import { ProductsService } from "@/services/products";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 
 const initialFormReportDaily: FormReportDaily = {
@@ -24,7 +25,7 @@ const initialFormReportDaily: FormReportDaily = {
 
 export function ReportDaily() {
   /* STATE */
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Estado para manejar la fecha seleccionada
   const [selectedOption, setSelectedOption] = useState<{ id: string, name: string }>({ id: "", name: "" });
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [alertMessage, setAlertMessage] = useState({
@@ -37,6 +38,7 @@ export function ReportDaily() {
   const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
 
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
+  const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
 
 
   /* HOOKS */
@@ -102,7 +104,7 @@ export function ReportDaily() {
     // Validar que se haya seleccionado una fecha y un lote pendiente
     console.log("almacenid", warehousesData?.GrupoIdGranjaAnimales)
     const requestData = {
-      fecha: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
+      fecha: formattedDate,
       warehouseId: selectedOption.id.trim(),
       observaciones: formReportDaily.observation.trim() ? formReportDaily.observation.trim() : undefined,
       produccion: [

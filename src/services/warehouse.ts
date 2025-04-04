@@ -9,4 +9,10 @@ export class WarehouseService {
     return this.apiService.get("/warehouses");
   }
 
+  getProductInventory(){
+    return fetch("/vitaovo/Products.json")
+    .then(response => response.json())
+    .catch(error => console.error('Error al obtener los productos:', error));
+  }
+
 }
