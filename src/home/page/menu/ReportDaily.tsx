@@ -103,27 +103,27 @@ export function ReportDaily() {
     console.log("almacenid", warehousesData?.GrupoIdGranjaAnimales)
     const requestData = {
       fecha: selectedDate ? selectedDate.toISOString().split('T')[0] : undefined,
-      lote: selectedOption,
-      observaciones: formReportDaily.observation.trim() ? formReportDaily.observation : undefined,
+      warehouseId: selectedOption.id.trim(),
+      observaciones: formReportDaily.observation.trim() ? formReportDaily.observation.trim() : undefined,
       produccion: [
-      { productoid: '000107', cantidad: formReportDaily.eggs.trim() ? formReportDaily.eggs : undefined },
-      { productoid: '000105', cantidad: formReportDaily.eggs_lining.trim() ? formReportDaily.eggs_lining : undefined },
-      { productoid: '000104', cantidad: formReportDaily.eggs_chopped.trim() ? formReportDaily.eggs_chopped : undefined },
-      { productoid: '000103', cantidad: formReportDaily.eggs_broken.trim() ? formReportDaily.eggs_broken : undefined },
+      { productoid: '000107', cantidad: formReportDaily.eggs.trim() ? formReportDaily.eggs.trim() : undefined },
+      { productoid: '000105', cantidad: formReportDaily.eggs_lining.trim() ? formReportDaily.eggs_lining.trim() : undefined },
+      { productoid: '000104', cantidad: formReportDaily.eggs_chopped.trim() ? formReportDaily.eggs_chopped.trim() : undefined },
+      { productoid: '000103', cantidad: formReportDaily.eggs_broken.trim() ? formReportDaily.eggs_broken.trim() : undefined },
       ],
       productos: [
       ...(warehousesData?.GrupoIdGranjaAnimales
-        ?.filter(product => product.qtyToAdd !== undefined)
-        .map(product => ({ productoid: product.productId, cantidad: product.qtyToAdd })) ?? []),
+      ?.filter(product => product.qtyToAdd !== undefined)
+      .map(product => ({ productoid: product.productId.trim(), cantidad: product.qtyToAdd })) ?? []),
       ...(warehousesData?.GrupoIdGranjaMedicamentos
-        ?.filter(product => product.qtyToAdd !== undefined)
-        .map(product => ({ productoid: product.productId, cantidad: product.qtyToAdd })) ?? []),
+      ?.filter(product => product.qtyToAdd !== undefined)
+      .map(product => ({ productoid: product.productId.trim(), cantidad: product.qtyToAdd })) ?? []),
       ...(warehousesData?.GrupoIdGranjaAlimentos
-        ?.filter(product => product.qtyToAdd !== undefined)
-        .map(product => ({ productoid: product.productId, cantidad: product.qtyToAdd })) ?? []),
+      ?.filter(product => product.qtyToAdd !== undefined)
+      .map(product => ({ productoid: product.productId.trim(), cantidad: product.qtyToAdd })) ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio
-        ?.filter(product => product.qtyToAdd !== undefined)
-        .map(product => ({ productoid: product.productId, cantidad: product.qtyToAdd })) ?? []),
+      ?.filter(product => product.qtyToAdd !== undefined)
+      .map(product => ({ productoid: product.productId.trim(), cantidad: product.qtyToAdd })) ?? []),
       ],
     };
 
@@ -164,9 +164,9 @@ function handleInputChange(productId: string, value: string, currentDataKey: str
 
   
   if(productOnGroup){
-    if(productOnGroup?.inventory < Number(value)) {
-      toast.error(`La cantidad supera el inventario disponible: ${productOnGroup?.inventory}`);
-      productOnGroup.qtyToAdd = parseFloat(Number(productOnGroup?.inventory).toFixed(2));
+    if(productOnGroup?.invenactua < Number(value)) {
+      toast.error(`La cantidad supera el inventario disponible: ${productOnGroup?.invenactua}`);
+      productOnGroup.qtyToAdd = parseFloat(Number(productOnGroup?.invenactua).toFixed(2));
     }else{
       productOnGroup.qtyToAdd = parseFloat(value);
     }

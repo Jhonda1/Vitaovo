@@ -9,7 +9,7 @@ interface FormReportDaily {
 interface Product {
   productId: string; // Identificador único del producto
   name: string; // Nombre del producto
-  inventory: number; // Inventario actual del producto
+  invenactua: number; // Inventario actual del producto
   qtyToAdd?:number
 }
 

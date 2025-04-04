@@ -29,7 +29,7 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
           {/* Inventario actual */}
           <div className="text-center">
             <Label className="font-bold text-center block">Inventario actual</Label>
-            <span className="text-sm text-gray-500">{formatNumber(product.inventory)}</span>
+            <span className="text-sm text-gray-500">{formatNumber(product.invenactua)}</span>
             
           </div>
 
