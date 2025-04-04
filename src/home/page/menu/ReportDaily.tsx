@@ -117,16 +117,17 @@ export function ReportDaily() {
     };
   
     try {
-      const response = await apiService.post("/products/inserProductInventari", {
-        requestData: requestData,
-      });
+      const response = await productService.inserProductInventari({ requestData });
+
       console.log("Respuesta de la API:", response.data);
-      if (response.status === 200) {
+      const {data, status} = response as AxiosResponse;
+      if(status === 200){
+        setAlmacenData(data.products);
         setAlertMessage({
           title: "¡Éxito!",
           description: "La información se guardó satisfactoriamente.",
         });
-        setIsAlertOpen(true);
+        // setIsAlertOpen(true);
       }
     } catch (error) {
       console.error("Error al enviar los datos:", error);

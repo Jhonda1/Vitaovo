@@ -22,4 +22,7 @@ export class ProductsService {
   getProductsLoadProduction(groupId: string) {
     return this.apiService.get(`/products/${groupId}`);
   }
+  inserProductInventari(data: object) {
+    return this.apiService.post(`/products/inserProductInventari`, data);
+  }
 }

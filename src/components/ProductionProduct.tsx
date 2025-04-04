@@ -19,17 +19,17 @@ export const ProductionProduct: React.FC<ProductionProductProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border rounded-md shadow-sm bg-white">
+    <div className="flex items-center justify-between p-4 border rounded-md shadow-sm bg-white h-20">
       {/* Nombre del producto */}
       <Label className="text-sm font-medium text-gray-700 col-span-1">{productName}</Label>
 
       {/* Input para la cantidad */}
       <Input
-        type="text"
-        placeholder={`Cant ${productName}`}
-        onChange={handleInputChange}
-        className="mt-1 col-span-3"
-        id={`input-${productId}`}
+      type="text"
+      placeholder={`Cant ${productName}`}
+      onChange={handleInputChange}
+      className="mt-1 col-span-3"
+      id={`input-${productId}`}
       />
     </div>
   );

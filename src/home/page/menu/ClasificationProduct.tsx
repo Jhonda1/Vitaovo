@@ -5,13 +5,13 @@ import { CustomSelect } from "@/components/CustomSelect";
 import { Alert } from "@/components/Alert"; // Importa el componente de alerta
 import { ProductClasification } from "@/components/ProductClasification"; // Importa el componente de clasificación de productos
 import { useApi } from "@/hooks/useApiService";
-import { SelectItem } from "@radix-ui/react-select";
 import { WarehouseService } from "@/services/warehouse";
 import { ProductsService } from "@/services/products";
 import { FormReportDaily, WarehouseData } from "@/types";
 import { AxiosResponse } from "axios";
 import { FormProduction } from "@/home/components/FormProduction";
 import { ProductionProduct } from "@/components/ProductionProduct";
+import { SelectItem } from "@/components/ui/select";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation' : '',
@@ -71,7 +71,7 @@ export function ClasificationProduct() {
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string, name: string) => {
     // debugger; // Pausa la ejecución para inspeccionar el estado actual
-    if (selectedOption.id === almacenid) return; 
+    // if (selectedOption.id === almacenid) return; 
     console.log("almacenid",selectedOption.id , almacenid)
     setSelectedOption({id: almacenid, name: name});
 
