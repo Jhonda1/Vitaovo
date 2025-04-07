@@ -11,6 +11,7 @@ import { AxiosResponse } from "axios";
 import { FormProduction } from "@/home/components/FormProduction";
 import { ProductionProduct } from "@/components/ProductionProduct";
 import { SelectItem } from "@/components/ui/select";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation' : '',
@@ -35,24 +36,27 @@ export function ClasificationProduct() {
   const { apiService } = useApi();
   const warehouseService = new WarehouseService(apiService);
   const productService = new ProductsService(apiService);
+  const [loading, setLoading] = useState(false);
 
   /* EFFECTS */
   useEffect(() => {
     // Función para obtener los datos de los almacenes
     const fetchAlmacenes = async () => {
       try {
+        setLoading(true);
         const response = await warehouseService.getWarehouses();
         const {data, status} = response as AxiosResponse;
         console.log("Respuesta de la API:", data);
         if(status === 200){
-
           const almacenes = data.warehouses.map((almacen: {id: string, name: string}) => ({
             value: almacen.id,
             label: almacen.name,
           }));
           setOptions(almacenes);
+          setLoading(false);
         }
       } catch (error) {
+        setLoading(false);
         console.error("Error al obtener los almacenes:", error);
       }
     };
@@ -93,13 +97,16 @@ export function ClasificationProduct() {
     setSelectedOption({id: almacenid, name: name});
 
     try {
+      setLoading(true);
       const response = await productService.getRegisteredProductsByDateAndWarehouse(`${selectedDate?.toISOString()}`, `${almacenid}?column[]=GrupoIdGranjaProduccion`)
       const {data, status} = response as AxiosResponse;
       console.log("Respuesta de la API:", data);
       if(status === 200){
+        setLoading(false);
         setAlmacenData(data.products);
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error al obtener los datos del almacén:", error);
     }
   };
@@ -107,17 +114,19 @@ export function ClasificationProduct() {
   // Función para manejar el envío del formulario
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     // Simula el envío de datos
     const isValid = true; // Aquí puedes agregar validaciones si es necesario
 
     if (isValid) {
+      setLoading(false);
       setAlertMessage({
         title: "¡Éxito!",
         description: "La información se guardó satisfactoriamente.",
       });
       setIsAlertOpen(true); // Muestra la alerta
     } else {
+      setLoading(false);
       setAlertMessage({
         title: "¡Error!",
         description: "Ocurrió un problema al guardar la información.",
@@ -138,6 +147,11 @@ export function ClasificationProduct() {
 
   return (
     <div className="w-full p-4">
+      <LoadingSpinner 
+        loading={loading} 
+        type="bounce" 
+        size={55} 
+      /> 
       <form className="w-full space-y-4" onSubmit={handleSubmit}>
         <div className="w-full flex space-x-4">
           <div className="w-1/2">
