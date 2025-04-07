@@ -13,7 +13,7 @@ import { AxiosResponse } from "axios";
 import { ProductsService } from "@/services/products";
 import { toast } from "sonner";
 import { format } from "date-fns";
-
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation': '',
@@ -39,6 +39,7 @@ export function ReportDaily() {
 
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
+  const [loading, setLoading] = useState(false);
 
 
   /* HOOKS */
@@ -51,17 +52,19 @@ export function ReportDaily() {
     // Función para obtener los datos de los almacenes
     const fetchAlmacenes = async () => {
       try {
+        setLoading(true);
         const response = await warehouseService.getWarehouses();
         const { data, status } = response as AxiosResponse;
         if (status === 200) {
-
           const almacenes = data.warehouses.map((almacen: { id: string, name: string }) => ({
             value: almacen.id,
             label: almacen.name,
           }));
           setOptions(almacenes);
+          setLoading(false);
         }
       } catch (error) {
+        setLoading(false);
         console.error("Error al obtener los almacenes:", error);
       }
     };
@@ -81,16 +84,18 @@ export function ReportDaily() {
     console.log("almacenid", selectedOption.id, almacenid)
 
     // console.log("almacenid",almacenid," name",name)
-
     setSelectedOption({ id: almacenid, name: name });
 
     try {
+      setLoading(true);
       const response = await productService.getProductsByWarehouse(`${almacenid}?column[]=GrupoIdGranjaMedicamentos&&column[]=GrupoIdGranjaAlimentos&&column[]=GrupoIdGranjaCalcio&&column[]=GrupoIdGranjaAnimales`)
       const { data, status } = response as AxiosResponse;
       if (status === 200) {
+        setLoading(false);
         setWarehouseData(data.products);
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error al obtener los datos del almacén:", error);
     }
   };
@@ -100,7 +105,7 @@ export function ReportDaily() {
    */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setLoading(true);
     // Validar que se haya seleccionado una fecha y un lote pendiente
     console.log("almacenid", warehousesData?.GrupoIdGranjaAnimales)
     const requestData = {
@@ -135,6 +140,7 @@ export function ReportDaily() {
       const { data, status } = response as AxiosResponse;
       console.log("Respuesta de la API:", data);
       if (status === 200) {
+        setLoading(false);
         // setWarehouseData(data.products);
         setAlertMessage({
           title: "¡Éxito!",
@@ -143,6 +149,7 @@ export function ReportDaily() {
         // setIsAlertOpen(true);
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error al enviar los datos:", error);
       setAlertMessage({
         title: "Error",
@@ -181,6 +188,11 @@ function handleInputChange(productId: string, value: string, currentDataKey: str
 }
   return (
     <div className="w-full p-4">
+      <LoadingSpinner 
+        loading={loading} 
+        type="bounce" 
+        size={55} 
+      />
       <form className="w-full space-y-4" onSubmit={handleSubmit}>
         <div className="w-full flex space-x-4">
           <div className="w-1/2">

@@ -18,6 +18,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useApi } from "@/hooks/useApiService";
 import { toast } from 'sonner';
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 
 export const FormUser = () => {
@@ -29,19 +30,26 @@ export const FormUser = () => {
   /* LOCAL STATE */
   const [loginData, setLoginData] = useState<{ user: string; password: string }>({ user: '', password: '' });
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   async function validateUser() {
     console.log("validateUser",loginData.user,loginData.password);
     if (loginData.user && loginData.password) {
-      const response = await apiService.post("/login", { user: loginData.user, password: loginData.password, usuarios: true });
-      console.log("Respuesta de la API:", response.data);
-      if (response.data && response.data.success) {
-        const user = response.data.user;
-        const token = response.data.token;
-        onLoginUserStore(user.name, user.id, token);
-        navigate('/home');
-      } 
+      setLoading(true);
+      try {
+        const response = await apiService.post("/login", { user: loginData.user, password: loginData.password, usuarios: true });
+        console.log("Respuesta de la API:", response.data);
+        if (response.data && response.data.success) {
+          const user = response.data.user;
+          const token = response.data.token;
+          onLoginUserStore(user.name, user.id, token);
+          navigate('/home');
+        } 
+      } catch (error) {
+        setLoading(false);
+      }
     } else {
+      setLoading(false);
       toast('Por favor, complete todos los campos');
     }
   }
@@ -55,6 +63,11 @@ export const FormUser = () => {
         ease: [0, 0.71, 0.2, 1.01],
       }}
     >
+      <LoadingSpinner 
+        loading={loading} 
+        type="bounce" 
+        size={55} 
+      />
       <Card className="w-[350px] h-[350px] relative overflow-hidden">
         <CardHeader>
             <div className="flex items-center justify-between">
