@@ -33,7 +33,6 @@ export const FormUser = () => {
   const [loading, setLoading] = useState(false);
 
   async function validateUser() {
-    console.log("validateUser",loginData.user,loginData.password);
     if (loginData.user && loginData.password) {
       setLoading(true);
       try {
@@ -50,7 +49,7 @@ export const FormUser = () => {
       }
     } else {
       setLoading(false);
-      toast('Por favor, complete todos los campos');
+      toast.info('Por favor, complete todos los campos');
     }
   }
   return (

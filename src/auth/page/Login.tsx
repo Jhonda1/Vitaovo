@@ -2,8 +2,12 @@ import { FormEnterprise } from "../components/FormEnterprise";
 import LogoVitaovo from '../../assets/Prosof.png';
 import { useAuthStore } from "@/store/useAuthStore";
 import { FormUser } from "../components/FormUser";
+import { Navigate } from "react-router";
 export const Login = () => {
   const nitStore  = useAuthStore(state => state.nit);
+  const isLogin = useAuthStore((state) => state.isLogged);
+  if (isLogin) return <Navigate to="Home" />;
+
   return (
     <div className="w-full h-full flex items-center justify-center ">
       <div className="grid grid-cols-1 md:grid-cols-3 w-full h-full ">

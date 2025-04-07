@@ -20,7 +20,7 @@ const userDataParsed = localStorage.getItem('user') ? JSON.parse(localStorage.ge
 export const useAuthStore = create<State & Action>((set) => ({
   nit: localStorage.getItem('nit') || '',
   conf: localStorage.getItem('conf') || '',
-  isLogged: false,
+  isLogged: userDataParsed?.token ? true : false,
   userName: userDataParsed?.userName || null,
   userId: userDataParsed?.userId || null,
   token: userDataParsed?.token || null,

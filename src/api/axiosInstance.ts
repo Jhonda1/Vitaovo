@@ -16,7 +16,7 @@ export function createAxiosInstance(URL_API: string): AxiosInstance {
     async (config) => {
       try {
         // Recupera la configuración de la base de datos desde localStorage
-        const conf = localStorage.getItem("conf");
+        const conf = await localStorage.getItem("conf");
         const parsedConf = conf ? JSON.parse(conf) : null;
   
         // Si existe la configuración de la base de datos, agrega el encabezado
@@ -27,7 +27,7 @@ export function createAxiosInstance(URL_API: string): AxiosInstance {
         }
   
         // Recupera el token desde la clave "user" en localStorage
-        const user = localStorage.getItem("user");
+        const user = await localStorage.getItem("user");
         const parsedUser = user ? JSON.parse(user) : null;
   
         if (parsedUser?.token) {
@@ -59,11 +59,15 @@ export function createAxiosInstance(URL_API: string): AxiosInstance {
 
       if (error?.response?.status === 500) {
         const errorMessage = error?.response?.data?.message || "Error en la respuesta de la solicitud ❌";
-        toast(errorMessage);
+        toast.error(errorMessage);
       } else if (error?.response?.status === 401) {
         console.log('Error 401: Sesión expirada', error?.response?.data)
         const errorMessage = error?.response?.data?.message || "Sesión expirada, por favor inicie sesión nuevamente ❌";
-        toast(errorMessage);
+        toast.error(errorMessage);
+      }else if (error?.response?.status === 400) {
+        console.log('Error 401: Sesión expirada', error?.response?.data)
+        const errorMessage = error?.response?.data?.message || "Sesión expirada, por favor inicie sesión nuevamente ❌";
+        toast.error(errorMessage);
       }
 
       return Promise.reject({ statusCode: error?.response?.status || 404, message: error?.response?.data?.message || 'Error en la conexión', ...error?.response?.data })

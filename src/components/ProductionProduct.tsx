@@ -1,36 +1,38 @@
 import React from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Product } from "@/types";
+
 
 interface ProductionProductProps {
-  productId: string; // ID del producto
-  productName: string; // Nombre del producto
-  onQuantityChange: (productId: string, quantity: number) => void; // Función para manejar el cambio de cantidad
+  products: Product[]; // Lista de productos
+  onInputChange: (productId: string, value: string) => void; // Función para manejar cambios en los inputs
 }
 
-export const ProductionProduct: React.FC<ProductionProductProps> = ({
-  productId,
-  productName,
-  onQuantityChange,
-}) => {
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    onQuantityChange(productId, isNaN(value) ? 0 : value); // Llama a la función con el ID del producto y la cantidad ingresada
-  };
+export const ProductionProduct: React.FC<ProductionProductProps> = ({ products, onInputChange }) => {
 
   return (
-    <div className="flex items-center justify-between p-4 border rounded-md shadow-sm bg-white h-20">
-      {/* Nombre del producto */}
-      <Label className="text-sm font-medium text-gray-700 col-span-1">{productName}</Label>
+    <div>
+      {products.map((product) => (
+      <div
+        key={product.productId}
+        className="flex items-center justify-between p-4 border rounded-md shadow-sm bg-white h-20"
+      >
+        {/* Nombre del producto */}
+        <Label className="text-xs font-medium text-gray-700 w-1/2 text-balance">
+        {product.name}
+        </Label>
 
-      {/* Input para la cantidad */}
-      <Input
-      type="text"
-      placeholder={`Cant ${productName}`}
-      onChange={handleInputChange}
-      className="mt-1 col-span-3"
-      id={`input-${productId}`}
-      />
+        {/* Input para la cantidad */}
+        <Input
+        type="text"
+        placeholder={`Cant ${product.name}`}
+        onChange={(e) => onInputChange(product.productId, e.target.value)}
+        className="mt-1 w-1/2 text-xs"
+        id={`input-${product.productId}`}
+        />
+      </div>
+      ))}
     </div>
   );
 };

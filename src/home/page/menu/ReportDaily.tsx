@@ -14,13 +14,15 @@ import { ProductsService } from "@/services/products";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useAuthStore } from "@/store/useAuthStore";
+
 
 const initialFormReportDaily: FormReportDaily = {
   'observation': '',
-  'eggs': '',
-  'eggs_lining': '',
-  'eggs_chopped': '',
-  'eggs_broken': '',
+  'eggs': 0,
+  'eggs_lining': 0,
+  'eggs_chopped': 0,
+  'eggs_broken': 0,
 }
 
 export function ReportDaily() {
@@ -40,6 +42,8 @@ export function ReportDaily() {
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
   const [loading, setLoading] = useState(false);
+  const nitStore  = useAuthStore(state => state.nit);
+
 
 
   /* HOOKS */
@@ -109,28 +113,45 @@ export function ReportDaily() {
     // Validar que se haya seleccionado una fecha y un lote pendiente
     console.log("almacenid", warehousesData?.GrupoIdGranjaAnimales)
     const requestData = {
+      nitStore: nitStore,
       fecha: formattedDate,
       warehouseId: selectedOption.id.trim(),
       observaciones: formReportDaily.observation.trim() ? formReportDaily.observation.trim() : undefined,
-      produccion: [
-      { productoid: '000107', cantidad: formReportDaily.eggs.trim() ? formReportDaily.eggs.trim() : undefined },
-      { productoid: '000105', cantidad: formReportDaily.eggs_lining.trim() ? formReportDaily.eggs_lining.trim() : undefined },
-      { productoid: '000104', cantidad: formReportDaily.eggs_chopped.trim() ? formReportDaily.eggs_chopped.trim() : undefined },
-      { productoid: '000103', cantidad: formReportDaily.eggs_broken.trim() ? formReportDaily.eggs_broken.trim() : undefined },
-      ],
+      produccion: {
+      Huevos: formReportDaily.eggs ? formReportDaily.eggs : undefined,
+      Picados: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
+      Forro: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+      Quebrado: formReportDaily.eggs_broken ? formReportDaily.eggs_broken : undefined,
+      },
       productos: [
       ...(warehousesData?.GrupoIdGranjaAnimales
-      ?.filter(product => product.qtyToAdd !== undefined)
-      .map(product => ({ productoid: product.productId.trim(), cantidad: product.qtyToAdd })) ?? []),
+        ?.filter(product => product.qtyToAdd !== undefined)
+        .map(product => ({
+        productoid: product.productId.trim(),
+        cantidad: product.qtyToAdd,
+        seccion: "Mortalidad",
+        })) ?? []),
       ...(warehousesData?.GrupoIdGranjaMedicamentos
-      ?.filter(product => product.qtyToAdd !== undefined)
-      .map(product => ({ productoid: product.productId.trim(), cantidad: product.qtyToAdd })) ?? []),
+        ?.filter(product => product.qtyToAdd !== undefined)
+        .map(product => ({
+        productoid: product.productId.trim(),
+        cantidad: product.qtyToAdd,
+        seccion: "Medicamentos",
+        })) ?? []),
       ...(warehousesData?.GrupoIdGranjaAlimentos
-      ?.filter(product => product.qtyToAdd !== undefined)
-      .map(product => ({ productoid: product.productId.trim(), cantidad: product.qtyToAdd })) ?? []),
+        ?.filter(product => product.qtyToAdd !== undefined)
+        .map(product => ({
+        productoid: product.productId.trim(),
+        cantidad: product.qtyToAdd,
+        seccion: "Alimentos",
+        })) ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio
-      ?.filter(product => product.qtyToAdd !== undefined)
-      .map(product => ({ productoid: product.productId.trim(), cantidad: product.qtyToAdd })) ?? []),
+        ?.filter(product => product.qtyToAdd !== undefined)
+        .map(product => ({
+        productoid: product.productId.trim(),
+        cantidad: product.qtyToAdd,
+        seccion: "Calcio",
+        })) ?? []),
       ],
     };
 
@@ -142,20 +163,20 @@ export function ReportDaily() {
       if (status === 200) {
         setLoading(false);
         // setWarehouseData(data.products);
-        setAlertMessage({
-          title: "¡Éxito!",
-          description: "La información se guardó satisfactoriamente.",
-        });
+        // setAlertMessage({
+        //   title: "¡Éxito!",
+        //   description: "La información se guardó satisfactoriamente.",
+        // });
         // setIsAlertOpen(true);
       }
     } catch (error) {
       setLoading(false);
       console.error("Error al enviar los datos:", error);
-      setAlertMessage({
-        title: "Error",
-        description: "Hubo un problema al guardar la información.",
-      });
-      setIsAlertOpen(true);
+      // setAlertMessage({
+      //   title: "Error",
+      //   description: "Hubo un problema al guardar la información.",
+      // });
+      // setIsAlertOpen(true);
       return;
     }
   };
@@ -277,10 +298,10 @@ function handleInputChange(productId: string, value: string, currentDataKey: str
           <div className="grid  gap-4">
             <div className="flex items-center space-x-2">
               <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
-                <FormProduction id="huevos" label="Huevos" value={formReportDaily.eggs} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: e.target.value }))} />
-                <FormProduction id="picado" label="Picado" value={formReportDaily.eggs_lining} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: e.target.value }))} />
-                <FormProduction id="forro" label="Forro" value={formReportDaily.eggs_chopped} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: e.target.value }))} />
-                <FormProduction id="quebrado" label="Quebrado" value={formReportDaily.eggs_broken} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: e.target.value }))} />
+                <FormProduction id="huevos" label="Huevos" value={formReportDaily.eggs.toString()} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: Number(e.target.value) }))} />
+                <FormProduction id="picado" label="Picado" value={formReportDaily.eggs_lining.toString()} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value) }))} />
+                <FormProduction id="forro" label="Forro" value={formReportDaily.eggs_chopped.toString()} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value) }))} />
+                <FormProduction id="quebrado" label="Quebrado" value={formReportDaily.eggs_broken.toString()} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: Number(e.target.value) }))} />
                 <FormProduction id="total" label={`Total`} value={totalEggs.toString()} disabled={true} />
               </div>
             </div>

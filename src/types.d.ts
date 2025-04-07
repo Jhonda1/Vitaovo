@@ -1,9 +1,9 @@
 interface FormReportDaily {
     observation: string;
-    eggs: string;
-    eggs_lining: string;
-    eggs_chopped: string;
-    eggs_broken: string;
+    eggs: nunmber;
+    eggs_lining: number;
+    eggs_chopped: number;
+    eggs_broken: number;
 }
 
 interface Product {
