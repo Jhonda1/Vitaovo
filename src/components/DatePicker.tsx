@@ -14,7 +14,7 @@ interface DatePickerProps {
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange, label }) => {
-  const [date, setDate] = useState<Date | undefined>(selectedDate);
+  const [date, setDate] = useState<Date | undefined>(selectedDate || new Date()); // Estado para manejar la fecha seleccionada
   const [isOpen, setIsOpen] = useState(false); // Estado para controlar el Popover
 
   const handleDateChange = (newDate: Date | undefined) => {

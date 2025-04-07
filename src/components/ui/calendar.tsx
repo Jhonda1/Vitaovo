@@ -11,9 +11,11 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: React.ComponentProps<typeof DayPicker>) {
+  const today = new Date();
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
+      disabled={{ after: today }}
       className={cn("p-3", className)}
       classNames={{
         months: "flex flex-col sm:flex-row gap-2",
