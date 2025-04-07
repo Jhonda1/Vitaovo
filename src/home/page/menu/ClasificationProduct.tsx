@@ -3,7 +3,6 @@ import { Key, useEffect, useState } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
 import { Alert } from "@/components/Alert"; // Importa el componente de alerta
-import { ProductClasification } from "@/components/ProductClasification"; // Importa el componente de clasificación de productos
 import { useApi } from "@/hooks/useApiService";
 import { WarehouseService } from "@/services/warehouse";
 import { ProductsService } from "@/services/products";
@@ -94,7 +93,7 @@ export function ClasificationProduct() {
     setSelectedOption({id: almacenid, name: name});
 
     try {
-      const response = await productService.getProductsByWarehouse(`${almacenid}?column[]=GrupoIdGranjaProduccion`)
+      const response = await productService.getRegisteredProductsByDateAndWarehouse(`${selectedDate?.toISOString()}`, `${almacenid}?column[]=GrupoIdGranjaProduccion`)
       const {data, status} = response as AxiosResponse;
       console.log("Respuesta de la API:", data);
       if(status === 200){
@@ -133,7 +132,7 @@ export function ClasificationProduct() {
     totalEggs = 0;
   }
 
-  function handleQuantityChange(arg0: string, quantity: string): void {
+  function handleQuantityChange(_arg0: string, quantity: string): void {
     throw new Error("Function not implemented.");
   }
 
@@ -179,24 +178,6 @@ export function ClasificationProduct() {
             </div>
           </div>
         </div>
-
-        {/* {warehousesData?.GrupoIdGranjaProduccion && warehousesData.GrupoIdGranjaProduccion.length > 0 ? (
-          <div className="">
-            <h6 className="text-2xl font-bold mb-4">Clasificación de Productos</h6>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {warehousesData?.GrupoIdGranjaProduccion?.map((product: { productId: Key | null | undefined; name: string; }) => (
-                <ProductClasification
-                  key={product.productId}
-                  productName={product.name}
-                  quantity={quantities[product.name] || 0}
-                  onQuantityChange={(quantity) => handleQuantityChange(product.name, quantity)}
-                />
-              ))}
-            </div>
-          </div>
-        ) : (
-          <p className="text-gray-500">No hay productos disponibles.</p>
-        )} */}
 
         <div className="">
           <h6 className="text-2xl font-bold mb-4">Clasificacion de Producción</h6>
