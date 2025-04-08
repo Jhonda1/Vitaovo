@@ -92,7 +92,7 @@ export function ReportDaily() {
 
     try {
       setLoading(true);
-      const response = await productService.getProductsByWarehouse(`${almacenid}?column[]=GrupoIdGranjaMedicamentos&&column[]=GrupoIdGranjaAlimentos&&column[]=GrupoIdGranjaCalcio&&column[]=GrupoIdGranjaAnimales`)
+      const response = await productService.getProductsByWarehouse(`${almacenid}`)
       const { data, status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);

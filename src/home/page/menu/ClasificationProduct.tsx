@@ -29,12 +29,13 @@ export function ClasificationProduct() {
   const [selectedOption, setSelectedOption] = useState<{id: string, name: string}>({id: "", name: ""});
   const [isAlertOpen, setIsAlertOpen] = useState(false); // Estado para controlar la alerta
   const [alertMessage, setAlertMessage] = useState({ title: "", description: "" }); // Mensaje de la alerta
-  const [warehousesData, setAlmacenData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
+  const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
   );  
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const [loading, setLoading] = useState(false);
+
   
   /* HOOKS */
   const { apiService } = useApi();
@@ -89,15 +90,16 @@ export function ClasificationProduct() {
       console.log("Respuesta de la API:", data);
       if(status === 200){
         setLoading(false);
-        setAlmacenData(data.Production);
+        setWarehouseData(data.Production);
+
         const ProductProduction = data.products[0];
         const updatedFormReportDaily = {
           ...initialFormReportDaily, // Mantén los valores iniciales
-          eggs: ProductProduction.Huevos || initialFormReportDaily.eggs,
-          eggs_lining: ProductProduction.Forro || initialFormReportDaily.eggs_lining,
-          eggs_chopped: ProductProduction.Picados || initialFormReportDaily.eggs_chopped,
-          eggs_broken: ProductProduction.Quebrados || initialFormReportDaily.eggs_broken,
-          observation: ProductProduction.Observacion || initialFormReportDaily.observation,
+          eggs: ProductProduction?.Huevos || initialFormReportDaily.eggs,
+          eggs_lining: ProductProduction?.Forro || initialFormReportDaily.eggs_lining,
+          eggs_chopped: ProductProduction?.Picados || initialFormReportDaily.eggs_chopped,
+          eggs_broken: ProductProduction?.Quebrados || initialFormReportDaily.eggs_broken,
+          observation: ProductProduction?.Observacion || initialFormReportDaily.observation,
         };
         setFormReportDaily(updatedFormReportDaily);
         console.log("ProductProduction actualizado:", updatedFormReportDaily);
@@ -119,10 +121,10 @@ export function ClasificationProduct() {
       nitStore: nitStore,
       fecha: selectedDate.toISOString().split("T")[0],
       warehouseId: selectedOption.id.trim(),
-      products: warehousesData?.GrupoIdGranjaProduccion?.map((product) => ({
+      products: (warehousesData?.GrupoIdGranjaProduccion || []).map((product) => ({
       productId: product.productId,
-      quantity: product.qtyToAdd || 0, // Asegúrate de que qtyToAdd esté definido en el estado
-      })) || [],
+      qtyToAdd: product.qtyToAdd || 0,
+      })),
     };
     console.log("Datos enviados:", requestData);
 
@@ -150,23 +152,25 @@ export function ClasificationProduct() {
 
   // Función para manejar el cambio de cantidad en los productos
   function handleInputChange(productId: string, value: string, currentDataKey: string): void {
-    const newWarehouseDataGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])];
-
-    const productOnGroup = newWarehouseDataGroup.find(product => product.productId === productId);
-
-    if (productOnGroup) {
-      if (productOnGroup?.invenactua < Number(value)) {
+    const newWarehouseDateGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])]
+    
+    const productOnGroup = newWarehouseDateGroup.find(product => product.productId == productId)
+    /* newWarehouseDateGroup.qtyToAdd = value; */
+  
+    
+    if(productOnGroup){
+      if(productOnGroup?.invenactua < Number(value)) {
         toast.error(`La cantidad supera el inventario disponible: ${productOnGroup?.invenactua}`);
         productOnGroup.qtyToAdd = parseFloat(Number(productOnGroup?.invenactua).toFixed(2));
-      } else {
+      }else{
         productOnGroup.qtyToAdd = parseFloat(value);
       }
     }
-
-    setAlmacenData((prevState) => ({
+    setWarehouseData((prevState) =>({
       ...prevState,
-      [currentDataKey]: newWarehouseDataGroup,
-    }));
+      [currentDataKey]: newWarehouseDateGroup
+    }))
+    
   }
 
   return (
@@ -223,11 +227,7 @@ export function ClasificationProduct() {
             <ProductionProduct
               products={warehousesData?.GrupoIdGranjaProduccion || []}
               onInputChange={(productId, value) => {
-          if (!/^\d+$/.test(value)) {
-            console.error("Por favor, ingrese un valor numérico válido.");
-            return;
-          }
-          handleQuantityChange(productId, value);
+                handleInputChange(productId, value, "GrupoIdGranjaProduccion");
               }}
             />
           </div>

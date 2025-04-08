@@ -12,11 +12,11 @@ interface ProductionProductProps {
 export const ProductionProduct: React.FC<ProductionProductProps> = ({ products, onInputChange }) => {
 
   return (
-    <div>
+    <div className="flex flex-col gap-4">
       {products.map((product) => (
       <div
         key={product.productId}
-        className="flex items-center justify-between p-4 border rounded-md shadow-sm bg-white h-20"
+        className=""
       >
         {/* Nombre del producto */}
         <Label className="text-xs font-medium text-gray-700 w-1/2 text-balance">
