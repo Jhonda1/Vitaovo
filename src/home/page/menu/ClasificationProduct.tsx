@@ -9,11 +9,11 @@ import { ProductsService } from "@/services/products";
 import { FormReportDaily, Product, WarehouseData } from "@/types";
 import { AxiosResponse } from "axios";
 import { FormProduction } from "@/home/components/FormProduction";
-import { ProductionProduct } from "@/components/ProductionProduct";
 import { SelectItem } from "@/components/ui/select";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
+import { ProductClasification } from "@/components/ProductClasification";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation' : '',
@@ -35,6 +35,7 @@ export function ClasificationProduct() {
   );  
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const [loading, setLoading] = useState(false);
+  const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
 
   
   /* HOOKS */
@@ -115,16 +116,20 @@ export function ClasificationProduct() {
     e.preventDefault();
     setLoading(true);
     // Simula el envío de datos
-    console.log("Datos del formulario:", warehousesData?.GrupoIdGranjaProduccion);
+    console.log("Datos del formulario:", quantities);
+
+    const filteredProducts = Object.entries(quantities)
+      .filter(([_, quantity]) => quantity > 0)
+      .map(([productId, quantity]) => ({
+      productId,
+      cantidad: quantity,
+      }));
 
     const requestData = {
       nitStore: nitStore,
       fecha: selectedDate.toISOString().split("T")[0],
       warehouseId: selectedOption.id.trim(),
-      products: (warehousesData?.GrupoIdGranjaProduccion || []).map((product) => ({
-      productId: product.productId,
-      qtyToAdd: product.qtyToAdd || 0,
-      })),
+      products: filteredProducts,
     };
     console.log("Datos enviados:", requestData);
 
@@ -150,28 +155,17 @@ export function ClasificationProduct() {
     totalEggs = 0;
   }
 
-  // Función para manejar el cambio de cantidad en los productos
-  function handleInputChange(productId: string, value: string, currentDataKey: string): void {
-    const newWarehouseDateGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])]
-    
-    const productOnGroup = newWarehouseDateGroup.find(product => product.productId == productId)
-    /* newWarehouseDateGroup.qtyToAdd = value; */
-  
-    
-    if(productOnGroup){
-      if(productOnGroup?.invenactua < Number(value)) {
-        toast.error(`La cantidad supera el inventario disponible: ${productOnGroup?.invenactua}`);
-        productOnGroup.qtyToAdd = parseFloat(Number(productOnGroup?.invenactua).toFixed(2));
-      }else{
-        productOnGroup.qtyToAdd = parseFloat(value);
-      }
-    }
-    setWarehouseData((prevState) =>({
-      ...prevState,
-      [currentDataKey]: newWarehouseDateGroup
-    }))
-    
+  function handleInputChangeProd(productId: string, value: string, arg2: string) {
+    throw new Error("Function not implemented.");
   }
+
+  const handleQuantityChange = (productName: string, quantity: number) => {
+    console.log("Cantidad actualizada:", productName, quantity);
+    setQuantities((prevQuantities) => ({
+      ...prevQuantities,
+      [productName]: quantity,
+    }));
+  };
 
   return (
     <div className="w-full p-4">
@@ -221,17 +215,24 @@ export function ClasificationProduct() {
           </div>
         </div>
 
-        <div className="">
-          <h6 className="text-2xl font-bold mb-4">Clasificación de Producción</h6>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            <ProductionProduct
-              products={warehousesData?.GrupoIdGranjaProduccion || []}
-              onInputChange={(productId, value) => {
-                handleInputChange(productId, value, "GrupoIdGranjaProduccion");
-              }}
-            />
+        {warehousesData?.GrupoIdGranjaProduccion && warehousesData.GrupoIdGranjaProduccion.length > 0 ? (
+          <div className="">
+            <h6 className="text-2xl font-bold mb-4">Clasificación de Productos</h6>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {warehousesData?.GrupoIdGranjaProduccion?.map((product: { productId: Key | null | undefined; name: string; }) => (
+              <ProductClasification
+                key={product.productId}
+                productId={product.productId as string} // Aseguramos que productId sea una cadena
+                productName={product.name}
+                quantity={quantities[product.productId as string] || 0} // Usamos productId como clave para cantidades
+                onQuantityChange={(productId, quantity) => handleQuantityChange(productId, quantity)} // Pasamos productId y cantidad
+              />
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <p className="text-gray-500">No hay productos disponibles.</p>
+        )}
 
         <Button type="submit" variant={"secondary"} className="w-full">
           Enviar

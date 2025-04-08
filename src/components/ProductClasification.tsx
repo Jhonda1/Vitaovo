@@ -3,19 +3,21 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 interface ProductClasificationProps {
+  productId: string; // ID único del producto
   productName: string; // Nombre del producto
   quantity: number; // Cantidad inicial del producto
-  onQuantityChange: (quantity: number) => void; // Función para manejar el cambio de cantidad
+  onQuantityChange: (productId: string, quantity: number) => void; // Función para manejar el cambio de cantidad
 }
 
 export const ProductClasification: React.FC<ProductClasificationProps> = ({
+  productId,
   productName,
   quantity,
   onQuantityChange,
 }) => {
   const handleInputChangeProduct = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    onQuantityChange(isNaN(value) ? 0 : value); // Llama a la función con la cantidad ingresada
+    onQuantityChange(productId, isNaN(value) ? 0 : value); // Llama a la función con el ID y la cantidad ingresada
   };
 
   return (
