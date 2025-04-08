@@ -29,22 +29,14 @@ export function ReportDaily() {
   /* STATE */
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Estado para manejar la fecha seleccionada
   const [selectedOption, setSelectedOption] = useState<{ id: string, name: string }>({ id: "", name: "" });
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [alertMessage, setAlertMessage] = useState({
-    title: "",
-    description: "",
-  });
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
   );
   const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
-
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
   const [loading, setLoading] = useState(false);
   const nitStore  = useAuthStore(state => state.nit);
-
-
 
   /* HOOKS */
   const { apiService } = useApi();
@@ -76,18 +68,13 @@ export function ReportDaily() {
     fetchAlmacenes();
   }, []);
 
-
   useEffect(() => {
     /* Limpiar los inputs de producción */
     setFormReportDaily(initialFormReportDaily)
   }, [selectedOption])
 
-
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string, name: string) => {
-    console.log("almacenid", selectedOption.id, almacenid)
-
-    // console.log("almacenid",almacenid," name",name)
     setSelectedOption({ id: almacenid, name: name });
 
     try {
@@ -110,13 +97,13 @@ export function ReportDaily() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Validar que se haya seleccionado una fecha y un lote pendiente
-    console.log("almacenid", warehousesData?.GrupoIdGranjaAnimales)
+
     const requestData = {
       nitStore: nitStore,
       fecha: formattedDate,
       warehouseId: selectedOption.id.trim(),
       observaciones: formReportDaily.observation.trim() ? formReportDaily.observation.trim() : undefined,
+      modul: "Report",
       produccion: {
       Huevos: formReportDaily.eggs ? formReportDaily.eggs : undefined,
       Picados: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
@@ -127,28 +114,28 @@ export function ReportDaily() {
       ...(warehousesData?.GrupoIdGranjaAnimales
         ?.filter(product => product.qtyToAdd !== undefined)
         .map(product => ({
-        productoid: product.productId.trim(),
+        productId: product.productId,
         cantidad: product.qtyToAdd,
         seccion: "Mortalidad",
         })) ?? []),
       ...(warehousesData?.GrupoIdGranjaMedicamentos
         ?.filter(product => product.qtyToAdd !== undefined)
         .map(product => ({
-        productoid: product.productId.trim(),
+        productId: product.productId,
         cantidad: product.qtyToAdd,
         seccion: "Medicamentos",
         })) ?? []),
       ...(warehousesData?.GrupoIdGranjaAlimentos
         ?.filter(product => product.qtyToAdd !== undefined)
         .map(product => ({
-        productoid: product.productId.trim(),
+        productId: product.productId,
         cantidad: product.qtyToAdd,
         seccion: "Alimentos",
         })) ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio
         ?.filter(product => product.qtyToAdd !== undefined)
         .map(product => ({
-        productoid: product.productId.trim(),
+        productId: product.productId,
         cantidad: product.qtyToAdd,
         seccion: "Calcio",
         })) ?? []),
@@ -159,28 +146,21 @@ export function ReportDaily() {
       const response = await productService.inserProductInventari({ requestData });
 
       const { data, status } = response as AxiosResponse;
-      console.log("Respuesta de la API:", data);
       if (status === 200) {
         setLoading(false);
-        // setWarehouseData(data.products);
-        // setAlertMessage({
-        //   title: "¡Éxito!",
-        //   description: "La información se guardó satisfactoriamente.",
-        // });
-        // setIsAlertOpen(true);
+        setSelectedDate(new Date());
+        setSelectedOption({ id: "", name: "" });
+        setWarehouseData({});
+        setFormReportDaily(initialFormReportDaily);
+        toast.success("Los datos se guardaron correctamente.");
       }
     } catch (error) {
       setLoading(false);
       console.error("Error al enviar los datos:", error);
-      // setAlertMessage({
-      //   title: "Error",
-      //   description: "Hubo un problema al guardar la información.",
-      // });
-      // setIsAlertOpen(true);
+      toast.error("Ocurrió un error al enviar los datos.");
       return;
     }
   };
-
 
   let totalEggs = Number(formReportDaily.eggs) + Number(formReportDaily.eggs_lining) + Number(formReportDaily.eggs_chopped) + Number(formReportDaily.eggs_broken);
   if (isNaN(totalEggs)) {
@@ -190,8 +170,6 @@ function handleInputChange(productId: string, value: string, currentDataKey: str
   const newWarehouseDateGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])]
   
   const productOnGroup = newWarehouseDateGroup.find(product => product.productId == productId)
-  /* newWarehouseDateGroup.qtyToAdd = value; */
-
   
   if(productOnGroup){
     if(productOnGroup?.invenactua < Number(value)) {
@@ -230,6 +208,7 @@ function handleInputChange(productId: string, value: string, currentDataKey: str
               label="Lote:"
               placeholder="Selecciona un lote"
               onChange={(value) => handleAlmacenSelect(value.split('|')[0], value.split('|')[1])}
+              defaultChecked={selectedOption.id ? `${selectedOption.id}|${selectedOption.name}` : ''}
             >
               {options.map((option) => (
                 <SelectItem key={option.value} value={option.value + '|' + option.label} defaultChecked={option.value === selectedOption.id}>
@@ -319,18 +298,10 @@ function handleInputChange(productId: string, value: string, currentDataKey: str
           />
         </div>
 
-        <Button type="submit" variant={"secondary"} className="w-full">
-          Enviar
+        <Button type="submit" className="w-full flex items-center justify-center space-x-2">
+          <span>Enviar</span>
         </Button>
       </form>
-
-      <Alert
-        title={alertMessage.title}
-        description={alertMessage.description}
-        type="success"
-        isOpen={isAlertOpen}
-        onClose={() => setIsAlertOpen(false)}
-      />
     </div>
   );
 }

@@ -2,11 +2,10 @@ import { Button } from "@/components/ui/button";
 import { Key, useEffect, useState } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
-import { Alert } from "@/components/Alert"; // Importa el componente de alerta
 import { useApi } from "@/hooks/useApiService";
 import { WarehouseService } from "@/services/warehouse";
 import { ProductsService } from "@/services/products";
-import { FormReportDaily, Product, WarehouseData } from "@/types";
+import { FormReportDaily, WarehouseData } from "@/types";
 import { AxiosResponse } from "axios";
 import { FormProduction } from "@/home/components/FormProduction";
 import { SelectItem } from "@/components/ui/select";
@@ -27,8 +26,6 @@ export function ClasificationProduct() {
   /* STATE */
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedOption, setSelectedOption] = useState<{id: string, name: string}>({id: "", name: ""});
-  const [isAlertOpen, setIsAlertOpen] = useState(false); // Estado para controlar la alerta
-  const [alertMessage, setAlertMessage] = useState({ title: "", description: "" }); // Mensaje de la alerta
   const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
@@ -53,7 +50,6 @@ export function ClasificationProduct() {
         setLoading(true);
         const response = await warehouseService.getWarehouses();
         const {data, status} = response as AxiosResponse;
-        console.log("Respuesta de la API:", data);
         if(status === 200){
           const almacenes = data.warehouses.map((almacen: {id: string, name: string}) => ({
             value: almacen.id,
@@ -77,25 +73,34 @@ export function ClasificationProduct() {
     }
   }, [selectedOption.id]);
 
-
-
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string, name: string) => {
-    setSelectedOption({id: almacenid, name: name});
-    const dateToSend = selectedDate.toISOString().split("T")[0];
+    setSelectedOption({ id: almacenid, name: name });
+    await fetchWarehouseData(almacenid, selectedDate);
+  };
+
+  // Función para manejar el cambio de fecha
+  const handleDateChange = async (date: Date) => {
+    setSelectedDate(date);
+    if (selectedOption.id) {
+      await fetchWarehouseData(selectedOption.id, date);
+    }
+  };
+
+  const fetchWarehouseData = async (almacenid: string, date: Date) => {
+    const dateToSend = date.toISOString().split("T")[0];
 
     try {
       setLoading(true);
-      const response = await productService.getRegisteredProductsByDateAndWarehouse(`${dateToSend}`, `${almacenid}`)
-      const {data, status} = response as AxiosResponse;
-      console.log("Respuesta de la API:", data);
-      if(status === 200){
+      const response = await productService.getRegisteredProductsByDateAndWarehouse(`${dateToSend}`, `${almacenid}`);
+      const { data, status } = response as AxiosResponse;
+      if (status === 200) {
         setLoading(false);
         setWarehouseData(data.Production);
 
         const ProductProduction = data.products[0];
         const updatedFormReportDaily = {
-          ...initialFormReportDaily, // Mantén los valores iniciales
+          ...initialFormReportDaily,
           eggs: ProductProduction?.Huevos || initialFormReportDaily.eggs,
           eggs_lining: ProductProduction?.Forro || initialFormReportDaily.eggs_lining,
           eggs_chopped: ProductProduction?.Picados || initialFormReportDaily.eggs_chopped,
@@ -115,41 +120,56 @@ export function ClasificationProduct() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simula el envío de datos
-    console.log("Datos del formulario:", quantities);
+    if (!selectedDate || !selectedOption.id) {
+      setLoading(false);
+      toast.error("Por favor, selecciona una fecha y un lote antes de enviar.");
+      return;
+    }
 
     const filteredProducts = Object.entries(quantities)
       .filter(([_, quantity]) => quantity > 0)
       .map(([productId, quantity]) => ({
-      productId,
+        productId,
       cantidad: quantity,
-      }));
+      seccion: 'Produccion'
+    }));
+
+    if (filteredProducts.length === 0) {
+      setLoading(false);
+      toast.error("No hay datos para enviar.");
+      return;
+    }
 
     const requestData = {
       nitStore: nitStore,
       fecha: selectedDate.toISOString().split("T")[0],
       warehouseId: selectedOption.id.trim(),
-      products: filteredProducts,
+      productos: filteredProducts,
+      modul: "Clasification",
     };
     console.log("Datos enviados:", requestData);
 
     try {
-      const response = await productService.sendProductClassificationData({ requestData });
+      const response = await productService.inserProductInventari({ requestData });
       const {data, status} = response as AxiosResponse;
       if(status === 200){
         setLoading(false);
-        setIsAlertOpen(true); // Abre la alerta
-        setAlertMessage({ title: "Éxito", description: "Datos enviados correctamente." });
+        setSelectedDate(new Date());
+        setSelectedOption({ id: "", name: "" });
+        setWarehouseData({});
+        setFormReportDaily(initialFormReportDaily);
+        setQuantities({});
+        toast.success("Los datos se guardaron correctamente.");
       }
 
     } catch (error) {
       setLoading(false);
       console.error("Error al enviar los datos:", error);
+      toast.error("Error al guardar los datos.");
     }
  
   };
 
-    
   let totalEggs = Number(formReportDaily.eggs) + Number(formReportDaily.eggs_lining) + Number(formReportDaily.eggs_chopped) + Number(formReportDaily.eggs_broken);
   if(isNaN(totalEggs)) {
     totalEggs = 0;
@@ -181,7 +201,7 @@ export function ClasificationProduct() {
               label="Fecha:"
               selectedDate={selectedDate}
               onDateChange={(date) => {
-                setSelectedDate(date ?? new Date());
+                handleDateChange(date ?? new Date());
               }}
             />
           </div>
@@ -190,11 +210,12 @@ export function ClasificationProduct() {
               label="Lote:"
               placeholder="Selecciona un lote"
               onChange={(value) => handleAlmacenSelect(value.split('|')[0], value.split('|')[1])}
+              defaultChecked={selectedOption.id ? `${selectedOption.id}|${selectedOption.name}` : ''}
             >
               {options.map((option) => (
-                <SelectItem key={option.value} value={option.value+'|'+option.label} defaultChecked={option.value === selectedOption.id}>
-                  {option.label}
-                </SelectItem>
+              <SelectItem key={option.value} value={option.value+'|'+option.label} defaultChecked={option.value === selectedOption.id}>
+                {option.label}
+              </SelectItem>
               ))}
             </CustomSelect>
           </div>
@@ -215,11 +236,10 @@ export function ClasificationProduct() {
           </div>
         </div>
 
+        <h6 className="text-2xl font-bold mb-4">Clasificación de Productos</h6>
         {warehousesData?.GrupoIdGranjaProduccion && warehousesData.GrupoIdGranjaProduccion.length > 0 ? (
-          <div className="">
-            <h6 className="text-2xl font-bold mb-4">Clasificación de Productos</h6>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {warehousesData?.GrupoIdGranjaProduccion?.map((product: { productId: Key | null | undefined; name: string; }) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {warehousesData?.GrupoIdGranjaProduccion?.map((product: { productId: Key | null | undefined; name: string; }) => (
               <ProductClasification
                 key={product.productId}
                 productId={product.productId as string} // Aseguramos que productId sea una cadena
@@ -227,26 +247,16 @@ export function ClasificationProduct() {
                 quantity={quantities[product.productId as string] || 0} // Usamos productId como clave para cantidades
                 onQuantityChange={(productId, quantity) => handleQuantityChange(productId, quantity)} // Pasamos productId y cantidad
               />
-              ))}
-            </div>
+            ))}
           </div>
         ) : (
           <p className="text-gray-500">No hay productos disponibles.</p>
         )}
 
-        <Button type="submit" variant={"secondary"} className="w-full">
+        <Button type="submit" className="w-full">
           Enviar
         </Button>
       </form>
-
-      {/* Alerta reutilizable */}
-      <Alert
-        title={alertMessage.title}
-        description={alertMessage.description}
-        type="success"
-        isOpen={isAlertOpen}
-        onClose={() => setIsAlertOpen(false)}
-      />
     </div>
   );
 }

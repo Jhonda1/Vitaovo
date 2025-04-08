@@ -24,7 +24,7 @@ export class ProductsService {
   }
 
   inserProductInventari(data: object) {
-    return this.apiService.post(`/products/inserProductInventari`, data);
+    return this.apiService.post(`/products/insertProductInventario`, data);
   }
 
   getRegisteredProductsByDateAndWarehouse(date: string, warehouseId: string) {

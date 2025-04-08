@@ -7,6 +7,8 @@ export function createAxiosInstance(URL_API: string): AxiosInstance {
     headers: {
       "Content-Type": "application/json;charset=UTF-8",
       "Access-Control-Allow-Origin": "*",
+      "X-APPVERSION": import.meta.env.VITE_VERSION,
+      "X-APPNAME": import.meta.env.VITE_APP_NAME,
     },
     timeout: 90000, // 1.5 min
   });

@@ -58,7 +58,7 @@ export const FormEnterprise = () => {
         ease: [0, 0.71, 0.2, 1.01],
       }}
     >
-      <Card className="relative w-[350px] h-[350px] overflow-hidden">
+      <Card className="relative w-[350px] h-[370px] overflow-hidden">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-primary">Login</CardTitle>
         </CardHeader>
@@ -89,7 +89,12 @@ export const FormEnterprise = () => {
             {loading ? "Validando..." : "Ingresar"} {/* Cambia el texto del botón mientras carga */}
           </Button>
         </CardFooter>
+          <div className="text-center text-xs text-gray-500 mt-2">
+            Servicio al Cliente (6) 3151720 - Movil 320 632 1074<br />
+            Copyright (c) By Prosof S.A.S
+          </div>
         <BorderBeam duration={8} size={100} className="from-transparent via-green-500 to-transparent" />
+
       </Card>
     </motion.div>
   );

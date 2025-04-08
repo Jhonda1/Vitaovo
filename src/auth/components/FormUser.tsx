@@ -37,7 +37,6 @@ export const FormUser = () => {
       setLoading(true);
       try {
         const response = await apiService.post("/login", { user: loginData.user, password: loginData.password, usuarios: true });
-        console.log("Respuesta de la API:", response.data);
         if (response.data && response.data.success) {
           const user = response.data.user;
           const token = response.data.token;
@@ -67,7 +66,7 @@ export const FormUser = () => {
         type="bounce" 
         size={55} 
       />
-      <Card className="w-[350px] h-[350px] relative overflow-hidden">
+      <Card className="w-[350px] h-[370px] relative overflow-hidden">
         <CardHeader>
             <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold text-primary flex flex-col items-center">
@@ -118,6 +117,10 @@ export const FormUser = () => {
           </Button>
           <Button className="w-2/5"  onClick={validateUser}>Acceder</Button>
         </CardFooter>
+        <div className="text-center text-xs text-gray-500 mt-2">
+            Servicio al Cliente (6) 3151720 - Movil 320 632 1074<br />
+            Copyright (c) By Prosof S.A.S
+          </div>
         <BorderBeam
           duration={8}
           size={100}

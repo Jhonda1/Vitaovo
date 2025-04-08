@@ -4,7 +4,6 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -15,7 +14,6 @@ import { useSidebarMenu } from "@/hooks/useSidebarMenu";
 import { useSidebarMenuStore } from "@/store/useSidebarMenuStore";
 import LogoVitaovo from "../../assets/Logo.png";
 import { NavUserSidebar } from "./NavUserSidebar";
-import { ChevronsUpDown } from "lucide-react";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { sideBarMenu } = useSidebarMenu();
@@ -40,7 +38,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">Vitaovo</span>
               </div>
-              <ChevronsUpDown className="ml-auto" />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -60,7 +57,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       <div className="flex-row">
                         <menu.Icon
                           width={40}
-                          color="oklch(0.588 0.158 241.966)"
+                          color="var(--sidebar-primary)"
                         />
                         <span>{menu.title}</span>
                       </div>
