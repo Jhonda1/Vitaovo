@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
 import { ProductList } from "@/components/ProductList";
-import { Alert } from "@/components/Alert";
 import { useApi } from "@/hooks/useApiService";
 import { FormReportDaily, Product, WarehouseData } from "@/types";
 import { FormProduction } from "@/home/components/FormProduction";
@@ -62,6 +61,7 @@ export function ReportDaily() {
       } catch (error) {
         setLoading(false);
         console.error("Error al obtener los almacenes:", error);
+        toast.error(error.error, { id: "fetchAlmacenesError" });
       }
     };
 
@@ -141,6 +141,22 @@ export function ReportDaily() {
         })) ?? []),
       ],
     };
+    if (!requestData.warehouseId) {
+      setLoading(false);
+      toast.error("Debe seleccionar un lote.");
+      return;
+    }
+
+    if ((!requestData.produccion.Huevos &&
+        !requestData.produccion.Picados &&
+        !requestData.produccion.Forro &&
+        !requestData.produccion.Quebrado &&
+        requestData.productos.length === 0)
+    ) {
+      setLoading(false);
+      toast.error("Debe ingresar al menos un dato para enviar.");
+      return;
+    }
 
     try {
       const response = await productService.inserProductInventari({ requestData });
@@ -205,7 +221,7 @@ function handleInputChange(productId: string, value: string, currentDataKey: str
           </div>
           <div className="w-1/2">
             <CustomSelect
-              label="Lote:"
+              label="* Lote:"
               placeholder="Selecciona un lote"
               onChange={(value) => handleAlmacenSelect(value.split('|')[0], value.split('|')[1])}
               defaultChecked={selectedOption.id ? `${selectedOption.id}|${selectedOption.name}` : ''}

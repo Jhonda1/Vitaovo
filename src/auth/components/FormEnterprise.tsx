@@ -17,8 +17,6 @@ export const FormEnterprise = () => {
   const updateConf = useAuthStore((state) => state.updateConf);
   const { apiService } = useApi();
   
-  // console.log(apiService)
-
   async function validateNit() {
     if (nit != null && nit.length > 0) {
       const appName = import.meta.env.VITE_APP_NAME;
@@ -32,7 +30,6 @@ export const FormEnterprise = () => {
           // Si el NIT existe, actualiza el estado global          
           updateNit(nit);
           updateConf(response.data.db_config);
-          // console.log("NIT válido");
         } else {
           // Si el NIT no existe, muestra un mensaje de error
           setError("El NIT ingresado no existe.");
@@ -90,7 +87,7 @@ export const FormEnterprise = () => {
           </Button>
         </CardFooter>
           <div className="text-center text-xs text-gray-500 mt-2">
-            Servicio al Cliente (6) 3151720 - Movil 320 632 1074<br />
+            Servicio al Cliente (606) 3151720 - Movil 320 632 1074<br />
             Copyright (c) By Prosof S.A.S
           </div>
         <BorderBeam duration={8} size={100} className="from-transparent via-green-500 to-transparent" />

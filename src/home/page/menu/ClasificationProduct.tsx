@@ -198,7 +198,7 @@ export function ClasificationProduct() {
         <div className="w-full flex space-x-4">
           <div className="w-1/2">
             <DatePicker
-              label="Fecha:"
+              label="* Fecha:"
               selectedDate={selectedDate}
               onDateChange={(date) => {
                 handleDateChange(date ?? new Date());
@@ -207,7 +207,7 @@ export function ClasificationProduct() {
           </div>
           <div className="w-1/2">
             <CustomSelect
-              label="Lote:"
+              label="* Lote:"
               placeholder="Selecciona un lote"
               onChange={(value) => handleAlmacenSelect(value.split('|')[0], value.split('|')[1])}
               defaultChecked={selectedOption.id ? `${selectedOption.id}|${selectedOption.name}` : ''}

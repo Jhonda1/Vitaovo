@@ -118,7 +118,7 @@ export const FormUser = () => {
           <Button className="w-2/5"  onClick={validateUser}>Acceder</Button>
         </CardFooter>
         <div className="text-center text-xs text-gray-500 mt-2">
-            Servicio al Cliente (6) 3151720 - Movil 320 632 1074<br />
+            Servicio al Cliente (606) 3151720 - Movil 320 632 1074<br />
             Copyright (c) By Prosof S.A.S
           </div>
         <BorderBeam
