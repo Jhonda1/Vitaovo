@@ -17,7 +17,6 @@ export function FormProduction({ id, label, onChange=()=>{}, value, disabled=fal
         <Input
           type="text"
           placeholder={label}
-          
           value={value}
           disabled={disabled}
           onChange={onChange}

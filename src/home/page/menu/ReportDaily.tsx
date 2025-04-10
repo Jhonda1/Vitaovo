@@ -161,7 +161,7 @@ export function ReportDaily() {
     try {
       const response = await productService.inserProductInventari({ requestData });
 
-      const { data, status } = response as AxiosResponse;
+      const { status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);
         setSelectedDate(new Date());
@@ -173,7 +173,6 @@ export function ReportDaily() {
     } catch (error) {
       setLoading(false);
       console.error("Error al enviar los datos:", error);
-      toast.error("Ocurrió un error al enviar los datos.");
       return;
     }
   };
@@ -182,27 +181,41 @@ export function ReportDaily() {
   if (isNaN(totalEggs)) {
     totalEggs = 0;
   }
-function handleInputChange(productId: string, value: string, currentDataKey: string): void {
-  const newWarehouseDateGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])]
-  
-  const productOnGroup = newWarehouseDateGroup.find(product => product.productId == productId)
-  
-  if(productOnGroup){
-    if(productOnGroup?.invenactua < Number(value)) {
-      toast.error(`La cantidad supera el inventario disponible: ${productOnGroup?.invenactua}`);
+  /**
+   * * Función para manejar el cambio de valor en los inputs de productos
+   * @param productId ID del producto
+   * @param value Valor ingresado por el usuario
+   * @param currentDataKey Clave del objeto de datos del almacén
+   */
+  function handleInputChange(productId: string, value: string, currentDataKey: string): void {
+    const newWarehouseDateGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])];
+    
+    const productOnGroup = newWarehouseDateGroup.find(product => product.productId == productId);
+    
+    if (productOnGroup) {
+      if (productOnGroup?.invenactua < Number(value.replace(/,/g, ''))) {
+      toast.error(`La cantidad supera el inventario disponible: ${parseFloat(Number(productOnGroup?.invenactua).toFixed(2)).toLocaleString()}`);
       productOnGroup.qtyToAdd = parseFloat(Number(productOnGroup?.invenactua).toFixed(2));
-    }else{
-      productOnGroup.qtyToAdd = parseFloat(value);
+      } else {
+      productOnGroup.qtyToAdd = parseFloat(value.replace(/,/g, ''));
+      }
     }
+
+    setWarehouseData((prevState) => ({
+      ...prevState,
+      [currentDataKey]: newWarehouseDateGroup
+    }));
+
+    // Formatear el valor del input con separación de miles
+    const formattedValue = Number(value.replace(/,/g, '')).toLocaleString();
+    const inputElement = document.querySelector(`input[data-product-id="${productId}"]`) as HTMLInputElement;
+    if (inputElement) {
+      inputElement.value = formattedValue;
+    }
+    
   }
-  setWarehouseData((prevState) =>({
-    ...prevState,
-    [currentDataKey]: newWarehouseDateGroup
-  }))
-  
-}
   return (
-    <div className="w-full p-4">
+    <div className="w-full p-4 overflow-scroll h-screen">
       <LoadingSpinner 
         loading={loading} 
         type="bounce" 
@@ -293,11 +306,11 @@ function handleInputChange(productId: string, value: string, currentDataKey: str
           <div className="grid  gap-4">
             <div className="flex items-center space-x-2">
               <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
-                <FormProduction id="huevos" label="Huevos" value={formReportDaily.eggs.toString()} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: Number(e.target.value) }))} />
-                <FormProduction id="picado" label="Picado" value={formReportDaily.eggs_lining.toString()} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value) }))} />
-                <FormProduction id="forro" label="Forro" value={formReportDaily.eggs_chopped.toString()} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value) }))} />
-                <FormProduction id="quebrado" label="Quebrado" value={formReportDaily.eggs_broken.toString()} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: Number(e.target.value) }))} />
-                <FormProduction id="total" label={`Total`} value={totalEggs.toString()} disabled={true} />
+                <FormProduction id="huevos" label="Huevos" value={Number(formReportDaily.eggs).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
+                <FormProduction id="picado" label="Picado" value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
+                <FormProduction id="forro" label="Forro" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
+                <FormProduction id="quebrado" label="Quebrado" value={Number(formReportDaily.eggs_broken).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
+                <FormProduction id="total" label={`Total`} value={Number(totalEggs).toLocaleString("es-CO")} disabled={true} />
               </div>
             </div>
           </div>
@@ -308,13 +321,14 @@ function handleInputChange(productId: string, value: string, currentDataKey: str
           <textarea
             className="w-full p-2 border rounded-md"
             rows={4}
+            maxLength={4000}
             value={formReportDaily.observation}
             placeholder="Escribe tus observaciones aquí..."
             onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, observation: e.target.value }))}
           />
         </div>
 
-        <Button type="submit" className="w-full flex items-center justify-center space-x-2">
+        <Button type="submit" className="w-full flex items-center justify-center space-x-2 mb-10">
           <span>Enviar</span>
         </Button>
       </form>

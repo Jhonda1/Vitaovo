@@ -26,13 +26,17 @@ export const ProductClasification: React.FC<ProductClasificationProps> = ({
       <Label className="text-sm font-medium text-gray-700 col-span-1">{productName}</Label>
 
       {/* Input para la cantidad */}
-      <Input
-        type="text"
-        value={quantity}
-        onChange={handleInputChangeProduct}
-        className="mt-1 col-span-3"
-        placeholder="Cantidad"
-      />
+        <Input
+          type="text"
+          value={quantity ? Number(quantity).toLocaleString("es-CO") : ""}
+          onChange={(e) => {
+            const rawValue = e.target.value.replace(/[^0-9,]/g, "");
+            const numericValue = rawValue.replace(/,/g, "");
+            onQuantityChange(productId, numericValue ? parseInt(numericValue, 10) : 0);
+          }}
+          className="mt-1 col-span-3"
+          placeholder="Cantidad"
+        />
     </div>
   );
 };

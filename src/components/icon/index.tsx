@@ -45,6 +45,9 @@ const GradualStorageIcon = (props: PropsIcons) => (
 const CheckListIcon  = (props: PropsIcons) => (
   <Icon icon="mdi:clipboard-list" {...defaultProps} {...props} />
 );
+const ReportListIcon = (props: PropsIcons) => (
+  <Icon icon="mdi:clipboard-text-multiple" {...defaultProps} {...props} />
+);
 export {
   UserLoginIcon,
   PasswordIcon,
@@ -54,5 +57,6 @@ export {
   ProcessUCIcon,
   StorageIcon,
   GradualStorageIcon,
-  CheckListIcon
+  CheckListIcon,
+  ReportListIcon
 }

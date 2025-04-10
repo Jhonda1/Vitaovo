@@ -33,6 +33,12 @@ export class ProductsService {
     );
   }
 
+  getReportByDateAndWarehouse(date: string, warehouseId: string) {
+    return this.apiService.get(
+      `/products/Report/${date}/warehouse/${warehouseId}`
+    );
+  }
+
   sendProductClassificationData(data: object) {
     return this.apiService.post(`/products/sendProductClassificationData`, data);
   }

@@ -8,9 +8,6 @@ interface State {
 
 interface Action{
   setCurrentSidebarMenu: (sideBarMenuname:itemsSidebarMenu) => void
-  /* removeNit: () => void
-  onLoginUser: (userName: string, userId: string, token: string) => void
-  onLogout: () => void */
 }
 
 export const useSidebarMenuStore = create<State & Action>((set) => ({
@@ -19,19 +16,4 @@ export const useSidebarMenuStore = create<State & Action>((set) => ({
   setCurrentSidebarMenu: (sideBarMenuname:itemsSidebarMenu) => {
     set({ currentMenu: sideBarMenuname })
   }
-  /* updateNit: (nit:string) => {
-    localStorage.setItem('nit', nit)
-    set({ nit })
-  },
-  removeNit: () => {
-    localStorage.removeItem('nit')
-    set({ nit: '' })
-  },
-  onLoginUser: (userName, userId, token) => {
-    set({ userName, userId, token, isLogged: true })
-  },
-  onLogout: () => {
-    set({ userName: null, userId: null, token: null, isLogged: false })
-  } */
-
 }));

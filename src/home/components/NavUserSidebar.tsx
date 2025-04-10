@@ -54,6 +54,11 @@ export function NavUserSidebar(){
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
+          <div className="mt-2 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              V {import.meta.env.VITE_APP_VERSION || "1.0.0"}
+            </span>
+          </div>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>

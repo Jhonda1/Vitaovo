@@ -1,8 +1,9 @@
-import { ReportDailyIcon, ClasificationProductIcon } from "@/components/icon"
+import { ReportDailyIcon, ClasificationProductIcon, ReportListIcon } from "@/components/icon"
 import { itemsSidebarMenu } from "../constants/enums"
 import { ReportDaily } from "../home/page/menu/ReportDaily"
 import { ClasificationProduct } from "../home/page/menu/ClasificationProduct"
 import { useSidebarMenuStore } from "@/store/useSidebarMenuStore"
+import { ListReport } from "@/home/page/menu/ListReport"
 
 const sideBarMenu = {
   [itemsSidebarMenu.ReportDaily]: {
@@ -14,6 +15,11 @@ const sideBarMenu = {
     Component: ClasificationProduct,
     title: 'Clasificacion de productos',
     Icon: ClasificationProductIcon
+  },
+  [itemsSidebarMenu.ListReport]: {
+    Component: ListReport,
+    title: 'Listado Reportes',
+    Icon: ReportListIcon
   }
 }
 export function useSidebarMenu(){

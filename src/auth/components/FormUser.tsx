@@ -19,6 +19,7 @@ import { useNavigate } from "react-router";
 import { useApi } from "@/hooks/useApiService";
 import { toast } from 'sonner';
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { AxiosResponse } from "axios";
 
 
 export const FormUser = () => {
@@ -37,9 +38,11 @@ export const FormUser = () => {
       setLoading(true);
       try {
         const response = await apiService.post("/login", { user: loginData.user, password: loginData.password, usuarios: true });
-        if (response.data && response.data.success) {
-          const user = response.data.user;
-          const token = response.data.token;
+        const { data, status } = response as AxiosResponse;
+        console.log('Response:', data, status);
+        if (status === 200) {
+          const user = data.user;
+          const token = data.token;
           onLoginUserStore(user.name, user.id, token);
           navigate('/home');
         } 

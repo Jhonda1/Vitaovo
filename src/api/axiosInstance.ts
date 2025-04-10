@@ -24,13 +24,6 @@ export function createAxiosInstance(URL_API: string): AxiosInstance {
         // Si existe la configuración de la base de datos, agrega el encabezado
         if (parsedConf) {
           config.headers["DB-CONFIG"] = parsedConf;
-            // Recupera el NIT desde localStorage y lo agrega al encabezado si existe
-            const nit = await localStorage.getItem("nit");
-            if (nit) {
-            config.headers["NIT"] = nit;
-            } else {
-            console.warn("No se encontró el NIT en localStorage.");
-            }
         } else {
           console.warn("No se encontró la configuración de la base de datos en localStorage.");
         }

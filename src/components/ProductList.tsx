@@ -38,17 +38,14 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
             <div className="w-1/3">
               <Label className="font-bold text-center block">Cantidad</Label>
               <Input
+              type="text"
               id={`${product.productId}`}
-              placeholder={`${product.name}`}
-              value={product.qtyToAdd || ""}
+              placeholder="Cantidad"
+              value={product.qtyToAdd ? Number(product.qtyToAdd).toLocaleString("es-CO") : ""}
               onChange={(e) => {
-                const value = parseInt(e.target.value, 10);
-                
-                onInputChange(product.productId, e.target.value);
-                /* if (!isNaN(value) && value <= product.inventory) {
-                } else if (isNaN(value)) {
-                  onInputChange(product.productId, "");
-                } */
+                const rawValue = e.target.value.replace(/[^0-9,]/g, "");
+                const numericValue = rawValue.replace(/,/g, "");
+                onInputChange(product.productId, numericValue);
               }}
               />
             </div>
