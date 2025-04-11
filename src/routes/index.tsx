@@ -3,9 +3,10 @@ import { Toaster } from "@/components/ui/sonner";
 import { Home } from "@/home/page/Home";
 import { useAuthStore } from "@/store/useAuthStore";
 import { CircleCheck, CircleX } from "lucide-react";
-import { JSX } from "react";
+import { JSX, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
-
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useValidateNit } from "@/hooks/useValidateNit";
 
 const PrivateRoute = ({ component: Component }: { component: JSX.Element }) => {
   const isLogin = useAuthStore((state) => state.isLogged);
@@ -13,7 +14,35 @@ const PrivateRoute = ({ component: Component }: { component: JSX.Element }) => {
 };
 
 export const AppRouter = () => {
-  const RutaFront = '/'+import.meta.env.VITE_RUTA_FRONT;
+  const RutaFront = '/' + import.meta.env.VITE_RUTA_FRONT;
+  const { validateNit } = useValidateNit();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const predefinedNit = import.meta.env.VITE_NIT_EMPRESA;
+
+    const validatePredefinedNit = async () => {
+      if (predefinedNit && predefinedNit.trim() !== "") {
+        const result = await validateNit(predefinedNit);
+        if (!result.success) {
+          console.error(result.error || "Error desconocido.");
+        }
+      }
+      setLoading(false);
+    };
+
+    validatePredefinedNit();
+  }, [validateNit]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <LoadingSpinner loading={true} />
+        <p>Validando información...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full h-screen overflow-hidden">
       <BrowserRouter basename={RutaFront}>
@@ -23,9 +52,9 @@ export const AppRouter = () => {
           <Route path="*" element={<h1>Not found page que trist</h1>} />
         </Routes>
       </BrowserRouter>
-      <Toaster 
-        icons ={{
-          error: <CircleX color="red"/>,
+      <Toaster
+        icons={{
+          error: <CircleX color="red" />,
           success: <CircleCheck color="green" />,
         }}
       />

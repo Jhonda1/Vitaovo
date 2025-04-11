@@ -77,7 +77,7 @@ export const FormUser = () => {
               alt="Logo"
               className="object-cover h-[10%] lg:h-[15%] w-15 h-15 md:hidden"
               />
-              Ingresa tu Cuenta
+              {import.meta.env.VITE_NAME_ENTERPRISE || 'Ingresa tu Cuenta'}
             </CardTitle>
             </div>
         </CardHeader>

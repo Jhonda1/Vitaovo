@@ -7,32 +7,35 @@ import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useState } from "react";
 import * as motion from "motion/react-client";
-import { useApi} from "@/hooks/useApiService";
+import { useApi } from "@/hooks/useApiService";
 import { AxiosResponse } from "axios";
+import { FormUser } from "./FormUser"; // Importa el componente FormUser
 
 export const FormEnterprise = () => {
-  const [nit, setNit] = useState<string>('');
+  const [nit, setNit] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false); // Estado para manejar el loading
   const [error, setError] = useState<string | null>(null); // Estado para manejar errores
+  const [isNitValid, setIsNitValid] = useState<boolean>(false); // Estado para manejar la transición al FormUser
   const updateNit = useAuthStore((state) => state.updateNit);
   const updateConf = useAuthStore((state) => state.updateConf);
   const { apiService } = useApi();
-  
+
   async function validateNit() {
     if (nit != null && nit.length > 0) {
       const appName = import.meta.env.VITE_APP_NAME;
-      
+
       setLoading(true);
       setError(null); // Limpia errores previos
       try {
         // Realiza la petición a la API
-        const response = await apiService.post("/auth", { NIT: nit, APPNAME: appName });    
+        const response = await apiService.post("/auth", { NIT: nit, APPNAME: appName });
         const { data, status } = response as AxiosResponse;
-            
+
         if (status === 200) {
-          // Si el NIT existe, actualiza el estado global          
+          // Si el NIT existe, actualiza el estado global y pasa al FormUser
           updateNit(nit);
           updateConf(data.db_config);
+          setIsNitValid(true); // Cambia el estado para mostrar FormUser
         } else {
           // Si el NIT no existe, muestra un mensaje de error
           setError("El NIT ingresado no existe.");
@@ -46,6 +49,11 @@ export const FormEnterprise = () => {
     } else {
       setError("Por favor, ingresa un NIT válido.");
     }
+  }
+
+  // Si el NIT es válido, muestra el formulario de usuario
+  if (isNitValid) {
+    return <FormUser />;
   }
 
   return (
@@ -89,12 +97,12 @@ export const FormEnterprise = () => {
             {loading ? "Validando..." : "Ingresar"} {/* Cambia el texto del botón mientras carga */}
           </Button>
         </CardFooter>
-          <div className="text-center text-xs text-gray-500 mt-2">
-            Servicio al Cliente (606) 3151720 - Movil 320 632 1074<br />
-            Copyright (c) By Prosof S.A.S
-          </div>
+        <div className="text-center text-xs text-gray-500 mt-2">
+          Servicio al Cliente (606) 3151720 - Movil 320 632 1074
+          <br />
+          Copyright (c) By Prosof S.A.S
+        </div>
         <BorderBeam duration={8} size={100} className="from-transparent via-green-500 to-transparent" />
-
       </Card>
     </motion.div>
   );
