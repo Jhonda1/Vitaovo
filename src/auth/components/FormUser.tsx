@@ -2,7 +2,6 @@ import { PasswordIcon, UserLoginIcon } from "@/components/icon";
 import { BorderBeam } from "@/components/magicui/border-beam";
 import { Button } from "@/components/ui/button";
 import LogoVitaovo from '../../assets/Logo.png';
-import LogoProsof from '../../assets/Prosof.png';
 import {
   Card,
   CardContent,

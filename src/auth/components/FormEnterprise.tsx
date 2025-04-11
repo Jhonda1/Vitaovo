@@ -8,6 +8,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useState } from "react";
 import * as motion from "motion/react-client";
 import { useApi} from "@/hooks/useApiService";
+import { AxiosResponse } from "axios";
 
 export const FormEnterprise = () => {
   const [nit, setNit] = useState<string>('');
@@ -25,11 +26,13 @@ export const FormEnterprise = () => {
       setError(null); // Limpia errores previos
       try {
         // Realiza la petición a la API
-        const response = await apiService.post("/auth", { NIT: nit, APPNAME: appName });        
-        if (response.data.success) {
+        const response = await apiService.post("/auth", { NIT: nit, APPNAME: appName });    
+        const { data, status } = response as AxiosResponse;
+            
+        if (status === 200) {
           // Si el NIT existe, actualiza el estado global          
           updateNit(nit);
-          updateConf(response.data.db_config);
+          updateConf(data.db_config);
         } else {
           // Si el NIT no existe, muestra un mensaje de error
           setError("El NIT ingresado no existe.");

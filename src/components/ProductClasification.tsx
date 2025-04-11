@@ -15,10 +15,6 @@ export const ProductClasification: React.FC<ProductClasificationProps> = ({
   quantity,
   onQuantityChange,
 }) => {
-  const handleInputChangeProduct = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value, 10);
-    onQuantityChange(productId, isNaN(value) ? 0 : value); // Llama a la función con el ID y la cantidad ingresada
-  };
 
   return (
     <div className="flex items-center justify-between p-4 border rounded-md shadow-sm bg-white">

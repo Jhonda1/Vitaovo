@@ -61,7 +61,8 @@ export function ReportDaily() {
       } catch (error) {
         setLoading(false);
         console.error("Error al obtener los almacenes:", error);
-        toast.error(error.error, { id: "fetchAlmacenesError" });
+        const errorMessage = error instanceof Error ? error.message : "Error desconocido";
+        toast.error(errorMessage, { id: "fetchAlmacenesError" });
       }
     };
 

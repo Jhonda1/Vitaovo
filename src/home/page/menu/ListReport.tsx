@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
-import { ProductList } from "@/components/ProductList";
 import { useApi } from "@/hooks/useApiService";
-import { FormReportDaily, Product, WarehouseData } from "@/types";
+import { FormReportDaily, WarehouseData } from "@/types";
 import { SelectItem } from "@/components/ui/select";
 import { WarehouseService } from "@/services/warehouse";
 import { AxiosResponse } from "axios";
@@ -22,7 +21,7 @@ const initialFormReportDaily: FormReportDaily = {
 
 export function ListReport() {
   /* STATE */
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Estado para manejar la fecha seleccionada
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedOption, setSelectedOption] = useState<{ id: string; name: string }>({ id: "", name: "" });
   const [options, setOptions] = useState<{ value: string; label: string }[]>([]);
   const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
@@ -103,33 +102,6 @@ export function ListReport() {
     }
   };
 
-  function handleInputChange(productId: string, value: string, currentDataKey: string): void {
-    const newWarehouseDateGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])];
-    
-    const productOnGroup = newWarehouseDateGroup.find(product => product.productId == productId);
-    
-    if (productOnGroup) {
-      if (productOnGroup?.invenactua < Number(value.replace(/,/g, ''))) {
-      toast.error(`La cantidad supera el inventario disponible: ${parseFloat(Number(productOnGroup?.invenactua).toFixed(2)).toLocaleString()}`);
-      productOnGroup.qtyToAdd = parseFloat(Number(productOnGroup?.invenactua).toFixed(2));
-      } else {
-      productOnGroup.qtyToAdd = parseFloat(value.replace(/,/g, ''));
-      }
-    }
-
-    setWarehouseData((prevState) => ({
-      ...prevState,
-      [currentDataKey]: newWarehouseDateGroup
-    }));
-
-    // Formatear el valor del input con separación de miles
-    const formattedValue = Number(value.replace(/,/g, '')).toLocaleString();
-    const inputElement = document.querySelector(`input[data-product-id="${productId}"]`) as HTMLInputElement;
-    if (inputElement) {
-      inputElement.value = formattedValue;
-    }
-    
-  }
 
   let totalEggs = Number(formReportDaily.eggs) + Number(formReportDaily.eggs_lining) + Number(formReportDaily.eggs_chopped) + Number(formReportDaily.eggs_broken);
   if(isNaN(totalEggs)) {
@@ -172,7 +144,7 @@ export function ListReport() {
             <div className="grid grid-cols-1 gap-4">
               {warehousesData.GrupoIdGranjaAnimales.map((product) => (
                 <div key={product.productId} className="flex items-center space-x-4">
-                  <label className="w-1/2 text-gray-700">{product.productName}</label>
+                  <label className="w-1/2 text-gray-700">{product.name}</label>
                   <input
                     type="text"
                     value={Number(product.qtyToAdd || 0).toLocaleString("es-CO")}
@@ -192,7 +164,7 @@ export function ListReport() {
             <div className="grid grid-cols-1 gap-4">
               {warehousesData.GrupoIdGranjaMedicamentos.map((product) => (
                 <div key={product.productId} className="flex items-center space-x-4">
-                  <label className="w-1/2 text-gray-700">{product.productName}</label>
+                  <label className="w-1/2 text-gray-700">{product.name}</label>
                   <input
                     type="text"
                     value={Number(product.qtyToAdd || 0).toLocaleString("es-CO")}
@@ -212,7 +184,7 @@ export function ListReport() {
             <div className="grid grid-cols-1 gap-4">
               {warehousesData.GrupoIdGranjaAlimentos.map((product) => (
                 <div key={product.productId} className="flex items-center space-x-4">
-                  <label className="w-1/2 text-gray-700">{product.productName}</label>
+                  <label className="w-1/2 text-gray-700">{product.name}</label>
                   <input
                     type="text"
                     value={Number(product.qtyToAdd || 0).toLocaleString("es-CO")}
@@ -232,7 +204,7 @@ export function ListReport() {
             <div className="grid grid-cols-1 gap-4">
               {warehousesData.GrupoIdGranjaCalcio.map((product) => (
                 <div key={product.productId} className="flex items-center space-x-4">
-                  <label className="w-1/2 text-gray-700">{product.productName}</label>
+                  <label className="w-1/2 text-gray-700">{product.name}</label>
                   <input
                     type="text"
                     value={Number(product.qtyToAdd || 0).toLocaleString("es-CO")}

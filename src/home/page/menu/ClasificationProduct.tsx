@@ -175,10 +175,6 @@ export function ClasificationProduct() {
     totalEggs = 0;
   }
 
-  function handleInputChangeProd(productId: string, value: string, arg2: string) {
-    throw new Error("Function not implemented.");
-  }
-
   const handleQuantityChange = (productName: string, quantity: number) => {
     console.log("Cantidad actualizada:", productName, quantity);
     setQuantities((prevQuantities) => ({
