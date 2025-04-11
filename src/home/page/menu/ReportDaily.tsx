@@ -254,10 +254,9 @@ export function ReportDaily() {
           {warehousesData?.GrupoIdGranjaAnimales && warehousesData.GrupoIdGranjaAnimales.length > 0 ? (
             <ProductList
               products={warehousesData.GrupoIdGranjaAnimales}
-              onInputChange={(productId, value) =>
-                handleInputChange(productId, value, 'GrupoIdGranjaAnimales')
-              }
-            />
+              onInputChange={(productId, value) => handleInputChange(productId, value, 'GrupoIdGranjaAnimales')} onSelectChange={function (productId: string, selectedLote: string): void {
+                throw new Error("Function not implemented.");
+              } }            />
           ) : (
             <p className="text-gray-500">No hay productos disponibles.</p>
           )}
@@ -267,10 +266,9 @@ export function ReportDaily() {
           {warehousesData?.GrupoIdGranjaMedicamentos && warehousesData.GrupoIdGranjaMedicamentos.length > 0 ? (
             <ProductList
               products={warehousesData.GrupoIdGranjaMedicamentos || []}
-              onInputChange={(productId, value) =>
-                handleInputChange(productId, value, 'GrupoIdGranjaMedicamentos')
-              }
-            />
+              onInputChange={(productId, value) => handleInputChange(productId, value, 'GrupoIdGranjaMedicamentos')} onSelectChange={function (productId: string, selectedLote: string): void {
+                throw new Error("Function not implemented.");
+              } }            />
           ) : (
             <p className="text-gray-500">No hay productos disponibles.</p>
           )}

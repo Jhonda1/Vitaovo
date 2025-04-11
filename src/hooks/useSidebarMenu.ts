@@ -18,7 +18,7 @@ const sideBarMenu = {
   },
   [itemsSidebarMenu.ListReport]: {
     Component: ListReport,
-    title: 'Listado Reportes',
+    title: 'Listado reportes',
     Icon: ReportListIcon
   }
 }

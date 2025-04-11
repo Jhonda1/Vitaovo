@@ -110,14 +110,20 @@ export const FormUser = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button
-            
-            className="w-2/5"
-            onClick={removeNitStore}
-          >
-            Regresar
-          </Button>
-          <Button className="w-2/5"  onClick={validateUser}>Acceder</Button>
+            {!localStorage.getItem('nit') && (
+            <Button
+              className="w-2/5"
+              variant={"outline"}
+            >
+              Regresar
+            </Button>
+            )}
+            <Button 
+              className={`w-${!localStorage.getItem('nit') ? '2/5' : 'full'}`} 
+              onClick={validateUser}
+            >
+            Acceder
+            </Button>
         </CardFooter>
         <div className="text-center text-xs text-gray-500 mt-2">
             Servicio al Cliente (606) 3151720 - Movil 320 632 1074<br />

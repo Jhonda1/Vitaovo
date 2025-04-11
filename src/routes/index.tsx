@@ -19,7 +19,7 @@ export const AppRouter = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const predefinedNit = import.meta.env.VITE_NIT_EMPRESA;
+    const predefinedNit = localStorage.getItem("nit");
 
     const validatePredefinedNit = async () => {
       if (predefinedNit && predefinedNit.trim() !== "") {

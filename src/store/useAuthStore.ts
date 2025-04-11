@@ -42,12 +42,13 @@ export const useAuthStore = create<State & Action>((set) => ({
     localStorage.setItem('user', JSON.stringify({ userName, userId, token }))
     set({ userName, userId, token, isLogged: true })
   },
+  
   onLogout: () => {
     set({ userName: null, userId: null, token: null, isLogged: false, nit: '', conf: '' });
   
     // Elimina las claves específicas de localStorage
     localStorage.removeItem('user');
-    localStorage.removeItem('nit');
+    // localStorage.removeItem('nit');
     localStorage.removeItem('conf');
   }
 

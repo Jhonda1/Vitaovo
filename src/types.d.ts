@@ -7,6 +7,13 @@ interface FormReportDaily {
 }
 
 interface Product {
+  selectedLote: string;
+  loteAutomatico: string;
+  lotes: { 
+    numeroLote: string; 
+    fechaVence: string | null; 
+    invenActua: string; 
+  }[];
   productId: string; // Identificador único del producto
   name: string; // Nombre del producto
   invenactua: number; // Inventario actual del producto
