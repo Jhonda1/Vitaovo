@@ -13,7 +13,7 @@ const sideBarMenu = {
   },
   [itemsSidebarMenu.ClasificationProduct]: {
     Component: ClasificationProduct,
-    title: 'Clasificacion de productos',
+    title: 'Clasificación de productos',
     Icon: ClasificationProductIcon
   },
   [itemsSidebarMenu.ListReport]: {
