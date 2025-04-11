@@ -3,6 +3,7 @@ import { DropdownMenu, DropdownMenuContent,  DropdownMenuItem, DropdownMenuLabel
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, } from "@/components/ui/sidebar";
 import { ChevronsUpDown, LogOut } from "lucide-react";
 import UserLogged from '../../assets/Logo.png';
+import LogoProsof from '../../assets/Favicon.png';
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSidebar } from "@/hooks/use-sidebar";
 export function NavUserSidebar(){
@@ -15,7 +16,7 @@ export function NavUserSidebar(){
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={UserLogged} alt={userName || 'user'} />
+                <AvatarImage src={LogoProsof} alt={userName || 'user'} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -56,7 +57,7 @@ export function NavUserSidebar(){
           </DropdownMenuContent>
           <div className="mt-2 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              V {import.meta.env.VITE_APP_VERSION || "1.0.0"}
+              V {import.meta.env.VITE_VERSION || "1.0.0"}
             </span>
           </div>
         </DropdownMenu>
