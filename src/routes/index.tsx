@@ -13,9 +13,10 @@ const PrivateRoute = ({ component: Component }: { component: JSX.Element }) => {
 };
 
 export const AppRouter = () => {
+  const RutaFront = '/'+import.meta.env.VITE_RUTA_FRONT;
   return (
     <div className="w-full h-screen overflow-hidden">
-      <BrowserRouter basename="/vitaovo">
+      <BrowserRouter basename={RutaFront}>
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="home" element={<PrivateRoute component={<Home />} />} />
