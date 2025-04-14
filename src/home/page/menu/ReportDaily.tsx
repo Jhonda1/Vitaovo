@@ -189,32 +189,47 @@ export function ReportDaily() {
    * @param currentDataKey Clave del objeto de datos del almacén
    */
   function handleInputChange(productId: string, value: string, currentDataKey: string): void {
-    const newWarehouseDateGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])];
-    
-    const productOnGroup = newWarehouseDateGroup.find(product => product.productId == productId);
-    
-    if (productOnGroup) {
-      if (productOnGroup?.invenactua < Number(value.replace(/,/g, ''))) {
-      toast.error(`La cantidad supera el inventario disponible: ${parseFloat(Number(productOnGroup?.invenactua).toFixed(2)).toLocaleString()}`);
-      productOnGroup.qtyToAdd = parseFloat(Number(productOnGroup?.invenactua).toFixed(2));
+    const newWarehouseDataGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])];
+  
+    // Buscar el producto o lote correspondiente
+    const productOrLote = newWarehouseDataGroup.find(product => {
+      if (product.lotes && product.lotes.length > 0) {
+        return product.lotes.some(lote => `${product.productId}-${lote.numeroLote}` === productId);
+      }
+      return product.productId === productId;
+    });
+  
+    if (productOrLote) {
+      if (productOrLote.lotes && productOrLote.lotes.length > 0) {
+        // Si es un lote, actualizar el lote específico
+        const loteToUpdate = productOrLote.lotes.find(lote => `${productOrLote.productId}-${lote.numeroLote}` === productId);
+        if (loteToUpdate) {
+          if (loteToUpdate.invenActua < Number(value.replace(/,/g, ''))) {
+            toast.error(`La cantidad supera el inventario disponible: ${parseFloat(Number(loteToUpdate.invenActua).toFixed(2)).toLocaleString()}`);
+            loteToUpdate.qtyToAdd = parseFloat(Number(loteToUpdate.invenActua).toFixed(2));
+          } else {
+            loteToUpdate.qtyToAdd = parseFloat(value.replace(/,/g, ''));
+          }
+        }
       } else {
-      productOnGroup.qtyToAdd = parseFloat(value.replace(/,/g, ''));
+        // Si no es un lote, actualizar el producto directamente
+        if (productOrLote.invenactua < Number(value.replace(/,/g, ''))) {
+          toast.error(`La cantidad supera el inventario disponible: ${parseFloat(Number(productOrLote.invenactua).toFixed(2)).toLocaleString()}`);
+          productOrLote.qtyToAdd = parseFloat(Number(productOrLote.invenactua).toFixed(2));
+        } else {
+          productOrLote.qtyToAdd = parseFloat(value.replace(/,/g, ''));
+        }
       }
     }
-
+  
+    // Actualizar el estado del almacén
     setWarehouseData((prevState) => ({
       ...prevState,
-      [currentDataKey]: newWarehouseDateGroup
+      [currentDataKey]: newWarehouseDataGroup,
     }));
-
-    // Formatear el valor del input con separación de miles
-    const formattedValue = Number(value.replace(/,/g, '')).toLocaleString();
-    const inputElement = document.querySelector(`input[data-product-id="${productId}"]`) as HTMLInputElement;
-    if (inputElement) {
-      inputElement.value = formattedValue;
-    }
-    
   }
+
+  
   return (
     <div className="w-full p-4 overflow-scroll h-screen">
       <LoadingSpinner 
@@ -254,9 +269,10 @@ export function ReportDaily() {
           {warehousesData?.GrupoIdGranjaAnimales && warehousesData.GrupoIdGranjaAnimales.length > 0 ? (
             <ProductList
               products={warehousesData.GrupoIdGranjaAnimales}
-              onInputChange={(productId, value) => handleInputChange(productId, value, 'GrupoIdGranjaAnimales')} onSelectChange={function (productId: string, selectedLote: string): void {
-                throw new Error("Function not implemented.");
-              } }            />
+              onInputChange={(productId, value) =>
+                handleInputChange(productId, value, 'GrupoIdGranjaAnimales')
+              }
+            />
           ) : (
             <p className="text-gray-500">No hay productos disponibles.</p>
           )}
@@ -266,9 +282,10 @@ export function ReportDaily() {
           {warehousesData?.GrupoIdGranjaMedicamentos && warehousesData.GrupoIdGranjaMedicamentos.length > 0 ? (
             <ProductList
               products={warehousesData.GrupoIdGranjaMedicamentos || []}
-              onInputChange={(productId, value) => handleInputChange(productId, value, 'GrupoIdGranjaMedicamentos')} onSelectChange={function (productId: string, selectedLote: string): void {
-                throw new Error("Function not implemented.");
-              } }            />
+              onInputChange={(productId, value) =>
+                handleInputChange(productId, value, 'GrupoIdGranjaMedicamentos')
+              }
+            />
           ) : (
             <p className="text-gray-500">No hay productos disponibles.</p>
           )}

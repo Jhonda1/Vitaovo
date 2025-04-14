@@ -6,71 +6,91 @@ import { formatNumber } from "@/lib/utils";
 interface ProductListProps {
   products: Product[]; // Lista de productos
   onInputChange: (productId: string, value: string) => void; // Función para manejar cambios en los inputs
-  onSelectChange: (productId: string, selectedLote: string) => void; // Función para manejar cambios en el select
 }
 
-export const ProductList: React.FC<ProductListProps> = ({ products, onInputChange, onSelectChange }) => {
+export const ProductList: React.FC<ProductListProps> = ({ products, onInputChange }) => {
   return (
     <div className="flex flex-col gap-4">
-      {products.map((product) => (
-        <div
-          key={product.productId}
-          className="grid grid-cols-4 items-center gap-3 p-2 border rounded-md"
-        >
-          {/* Columna 1: Nombre del producto */}
-          <div className="flex flex-col">
-            <Label className="font-bold">Información del producto</Label>
-            <span className="text-sm text-gray-500">{product.name}</span>
-          </div>
-
-          {/* Columna 2: Select para lotes */}
-          <div>
-            {product.lotes && product.lotes.length > 0 && (
-              <div>
-                <Label className="font-bold text-sm">Lote</Label>
-                <select
-                  className="w-full p-2 border rounded-md"
-                  value={
-                    product.loteAutomatico === "S" && product.lotes.length > 0
-                      ? product.lotes[0].numeroLote // Selecciona automáticamente el primer lote si loteAutomatico es "S"
-                      : product.selectedLote || "" // Usa el lote seleccionado o un valor vacío
-                  }
-                  onChange={(e) => onSelectChange(product.productId, e.target.value)}
-                  disabled={product.loteAutomatico === "S"} // Deshabilita el select si es automático
-                >
-                  {product.lotes.map((lote) => (
-                    <option key={lote.numeroLote} value={lote.numeroLote}>
-                      {lote.numeroLote}
-                    </option>
-                  ))}
-                </select>
+      {products.flatMap((product) => {
+        // Si el producto tiene lotes, generar una entrada por cada lote
+        if (product.lotes && product.lotes.length > 0) {
+          return product.lotes.map((lote) => (
+            <div
+              key={`${product.productId}-${lote.numeroLote}`}
+              className="flex items-center justify-between gap-3 p-1 border rounded-md"
+            >
+              {/* Nombre del producto con el lote */}
+              <div className="flex flex-col w-1/3">
+                <Label className="font-bold">Información del producto</Label>
+                <span className="text-sm text-gray-500">
+                  {product.name} - Lote: {lote.numeroLote}
+                </span>
               </div>
-            )}
-          </div>
 
-          {/* Columna 3: Inventario actual */}
-          <div className="text-center">
-            <Label className="font-bold text-center block">Inventario actual</Label>
-            <span className="text-sm text-gray-500">{formatNumber(product.invenactua)}</span>
-          </div>
+              {/* Inventario actual del lote */}
+              <div className="text-center w-1/2">
+                <Label className="font-bold text-center block">Inventario actual</Label>
+                <span className="text-sm text-gray-500">{formatNumber(Number(lote.invenActua))}</span>
+              </div>
 
-          {/* Columna 4: Input con placeholder dinámico */}
-          <div>
-            <Label className="font-bold text-center block">Cantidad</Label>
-            <Input
-              type="text"
-              id={`${product.productId}`}
-              placeholder="Cantidad"
-              value={product.qtyToAdd ? Number(product.qtyToAdd).toLocaleString("es-CO") : ""}
-              onChange={(e) => {
-                const rawValue = e.target.value.replace(/[^0-9,]/g, "");
-                const numericValue = rawValue.replace(/,/g, "");
-                onInputChange(product.productId, numericValue);
-              }}
-            />
+              {/* Input con placeholder dinámico */}
+              <div className="w-1/3">
+                <Label className="font-bold text-center block">Cantidad</Label>
+                <Input
+                  type="text"
+                  id={`${product.productId}-${lote.numeroLote}`}
+                  placeholder="Cantidad"
+                  value={lote.qtyToAdd !== undefined ? Number(lote.qtyToAdd).toLocaleString("es-CO") : ""}
+                  onChange={(e) => {
+                    const rawValue = e.target.value.replace(/[^0-9,]/g, ""); // Filtrar solo números y comas
+                    const numericValue = rawValue.replace(/,/g, ""); // Eliminar comas
+                    const updatedValue = numericValue ? parseFloat(numericValue) : undefined;
+
+                    // Actualizar el estado del lote correspondiente
+                    onInputChange(`${product.productId}-${lote.numeroLote}`, updatedValue?.toString() || "");
+                  }}
+                />
+              </div>
+            </div>
+          ));
+        }
+
+        // Si el producto no tiene lotes, mostrarlo como está
+        return (
+          <div
+            key={product.productId}
+            className="flex items-center justify-between gap-3 p-1 border rounded-md"
+          >
+            {/* Nombre del producto */}
+            <div className="flex flex-col w-1/3">
+              <Label className="font-bold">Información del producto</Label>
+              <span className="text-sm text-gray-500">{product.name}</span>
+            </div>
+
+            {/* Inventario actual */}
+            <div className="text-center w-1/2">
+              <Label className="font-bold text-center block">Inventario actual</Label>
+              <span className="text-sm text-gray-500">{formatNumber(product.invenactua)}</span>
+            </div>
+
+            {/* Input con placeholder dinámico */}
+            <div className="w-1/3">
+              <Label className="font-bold text-center block">Cantidad</Label>
+              <Input
+                type="text"
+                id={`${product.productId}`}
+                placeholder="Cantidad"
+                value={product.qtyToAdd ? Number(product.qtyToAdd).toLocaleString("es-CO") : ""}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/[^0-9,]/g, "");
+                  const numericValue = rawValue.replace(/,/g, "");
+                  onInputChange(product.productId, numericValue);
+                }}
+              />
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

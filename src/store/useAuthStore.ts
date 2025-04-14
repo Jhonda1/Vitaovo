@@ -49,7 +49,7 @@ export const useAuthStore = create<State & Action>((set) => ({
     // Elimina las claves específicas de localStorage
     localStorage.removeItem('user');
     // localStorage.removeItem('nit');
-    localStorage.removeItem('conf');
+    // localStorage.removeItem('conf');
   }
 
 }));

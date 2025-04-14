@@ -13,6 +13,7 @@ interface Product {
     numeroLote: string; 
     fechaVence: string | null; 
     invenActua: string; 
+    qtyToAdd?:number
   }[];
   productId: string; // Identificador único del producto
   name: string; // Nombre del producto
