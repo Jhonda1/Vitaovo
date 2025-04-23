@@ -77,10 +77,10 @@ export function ReportDaily() {
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string, name: string) => {
     setSelectedOption({ id: almacenid, name: name });
-
+    const dateToSend = selectedDate?.toISOString().split("T")[0];
     try {
       setLoading(true);
-      const response = await productService.getProductsByWarehouse(`${almacenid}`)
+      const response = await productService.getProductsByWarehouse(`${dateToSend}`,`${almacenid}`)
       const { data, status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);
@@ -128,6 +128,7 @@ export function ReportDaily() {
           productId: producto.productId,
           cantidad: producto.qtyToAdd,
           seccion,
+          numeroLote:null
         }];
       }
 
@@ -159,14 +160,14 @@ export function ReportDaily() {
     }
 
     if (
-      !requestData.produccion.Huevos &&
-      !requestData.produccion.Picados &&
-      !requestData.produccion.Forro &&
-      !requestData.produccion.Quebrado &&
+      !requestData.produccion.Huevos ||
+      !requestData.produccion.Picados ||
+      !requestData.produccion.Forro ||
+      !requestData.produccion.Quebrado ||
       requestData.productos.length === 0
     ) {
       setLoading(false);
-      toast.error("Debe ingresar al menos un dato para enviar.");
+      toast.error("Debe ingresar todos los datos dato para enviar.");
       return;
     }
 
