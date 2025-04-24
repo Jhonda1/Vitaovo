@@ -4,7 +4,7 @@ import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
 import { ProductList } from "@/components/ProductList";
 import { useApi } from "@/hooks/useApiService";
-import { FormReportDaily, Product, WarehouseData } from "@/types";
+import { FormReportDaily, Product, WarehouseData, WarehouseAge } from "@/types";
 import { FormProduction } from "@/home/components/FormProduction";
 import { SelectItem } from "@/components/ui/select";
 import { WarehouseService } from "@/services/warehouse";
@@ -32,6 +32,11 @@ export function ReportDaily() {
     []
   );
   const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
+  const [warehouseAge, setWarehouseAge] = useState<WarehouseAge>({}); // Edad del lote seleccionado
+  const [gramsBirdDay, setGramsBirdDay] = useState<number | null>(0); // valor total de alimento consumido en gramos
+  const [gramsCalcioDay, setGramsCalcioDay] = useState<number | null>(0); // valor total de calcio consumido en gramos
+  const [mortality, setMortality] = useState<number | null>(); // total de aves - mortalidad
+  const [birdsNumber, setBirdsNumber] = useState<number | null>(); // inventario de aves del lote seleccionado
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
   const [loading, setLoading] = useState(false);
@@ -80,17 +85,28 @@ export function ReportDaily() {
     const dateToSend = selectedDate?.toISOString().split("T")[0];
     try {
       setLoading(true);
-      const response = await productService.getProductsByWarehouse(`${dateToSend}`,`${almacenid}`)
+      const response = await productService.getProductsByWarehouse(`${dateToSend}`, `${almacenid}`)
       const { data, status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);
         setWarehouseData(data.products);
+        setWarehouseAge(data.warehouseAge);
+        let birdsSum = getTotalInveActua(data.products.GrupoIdGranjaAnimales);
+        setBirdsNumber(birdsSum);
+
       }
     } catch (error) {
       setLoading(false);
       console.error("Error al obtener los datos del almacén:", error);
     }
   };
+
+  const getTotalInveActua = (array: any[]) => {
+    return array.reduce((total, item) => {
+      const cantidad = parseInt(item.invenactua); // Asegúrate de que invenactua sea un número
+      return cantidad > 0 ? total + cantidad : total;
+    }, 0);
+  }
 
   /**
    * * Función para manejar el envío del formulario
@@ -113,7 +129,7 @@ export function ReportDaily() {
       ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
     ].flatMap(producto => {
-       const seccion = grupoNombreMap[producto.grupo] || "Otro";
+      const seccion = grupoNombreMap[producto.grupo] || "Otro";
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
           .filter(lote => lote.qtyToAdd !== undefined)
@@ -128,7 +144,7 @@ export function ReportDaily() {
           productId: producto.productId,
           cantidad: producto.qtyToAdd,
           seccion,
-          numeroLote:null
+          numeroLote: null
         }];
       }
 
@@ -151,8 +167,7 @@ export function ReportDaily() {
       },
       productos,
     };
-    console.log("🚀 ~ handleSubmit ~ requestData:", requestData)
-    
+
     if (!requestData.warehouseId) {
       setLoading(false);
       toast.error("Debe seleccionar un lote.");
@@ -211,27 +226,84 @@ export function ReportDaily() {
       return product.productId === productId;
     });
 
+    const parsedValue = parseFloat(value.replace(/,/g, ''));
+    const safeValue = isNaN(parsedValue) ? 0 : parsedValue;
+
+
     if (productOrLote) {
       if (productOrLote.lotes && productOrLote.lotes.length > 0) {
         // Si es un lote, actualizar el lote específico
         const loteToUpdate = productOrLote.lotes.find(lote => `${productOrLote.productId}-${lote.numeroLote}` === productId);
         if (loteToUpdate) {
-          if (Number(loteToUpdate.invenActua) < Number(value.replace(/,/g, ''))) {
-            toast.error(`La cantidad supera el inventario disponible: ${parseFloat(Number(loteToUpdate.invenActua).toFixed(2)).toLocaleString()}`);
-            loteToUpdate.qtyToAdd = parseFloat(Number(loteToUpdate.invenActua).toFixed(2));
+          const maxValue = parseFloat(loteToUpdate.invenActua);
+          if (maxValue < safeValue) {
+            toast.error(`La cantidad supera el inventario disponible: ${maxValue.toLocaleString()}`);
+            loteToUpdate.qtyToAdd = maxValue;
           } else {
-            loteToUpdate.qtyToAdd = parseFloat(value.replace(/,/g, ''));
+            loteToUpdate.qtyToAdd = safeValue;
           }
         }
       } else {
         // Si no es un lote, actualizar el producto directamente
-        if (productOrLote.invenactua < Number(value.replace(/,/g, ''))) {
-          toast.error(`La cantidad supera el inventario disponible: ${parseFloat(Number(productOrLote.invenactua).toFixed(2)).toLocaleString()}`);
-          productOrLote.qtyToAdd = parseFloat(Number(productOrLote.invenactua).toFixed(2));
+        const maxValue = productOrLote.invenactua;
+        if (maxValue < safeValue) {
+          toast.error(`La cantidad supera el inventario disponible: ${maxValue.toLocaleString()}`);
+          productOrLote.qtyToAdd = maxValue;
         } else {
-          productOrLote.qtyToAdd = parseFloat(value.replace(/,/g, ''));
+          productOrLote.qtyToAdd = safeValue;
         }
+
       }
+    }
+    // Actualizar la mortalidad dinámicamente
+    if (currentDataKey === 'GrupoIdGranjaAnimales') {
+      const totalQtyToAdd = newWarehouseDataGroup.reduce((acc, product) => {
+        if (product.lotes && product.lotes.length > 0) {
+          return acc + product.lotes.reduce((loteAcc, lote) => {
+            const qty = typeof lote.qtyToAdd === 'number' ? lote.qtyToAdd : 0;
+            return loteAcc + qty;
+          }, 0);
+        }
+        const qty = typeof product.qtyToAdd === 'number' ? product.qtyToAdd : 0;
+        return acc + qty;
+      }, 0);
+
+      const updatedMortality = birdsNumber - totalQtyToAdd;
+      setMortality(updatedMortality);
+    }
+
+    // Actualizar la Alimento dinámicamente
+    if (currentDataKey === 'GrupoIdGranjaAlimentos') {
+      const totalQtyToAdd = newWarehouseDataGroup.reduce((acc, product) => {
+        if (product.lotes && product.lotes.length > 0) {
+          return acc + product.lotes.reduce((loteAcc, lote) => {
+            const qty = typeof lote.qtyToAdd === 'number' ? lote.qtyToAdd : 0;
+            return loteAcc + qty;
+          }, 0);
+        }
+        const qty = typeof product.qtyToAdd === 'number' ? product.qtyToAdd : 0;
+        return acc + qty;
+      }, 0);
+
+      const updatedGrams = totalQtyToAdd * 1000;
+      setGramsBirdDay(updatedGrams);
+    }
+
+    // Actualizar la Calcio dinámicamente
+    if (currentDataKey === 'GrupoIdGranjaCalcio') {
+      const totalQtyToAdd = newWarehouseDataGroup.reduce((acc, product) => {
+        if (product.lotes && product.lotes.length > 0) {
+          return acc + product.lotes.reduce((loteAcc, lote) => {
+            const qty = typeof lote.qtyToAdd === 'number' ? lote.qtyToAdd : 0;
+            return loteAcc + qty;
+          }, 0);
+        }
+        const qty = typeof product.qtyToAdd === 'number' ? product.qtyToAdd : 0;
+        return acc + qty;
+      }, 0);
+
+      const updatedGrams = totalQtyToAdd * 1000;
+      setGramsCalcioDay(updatedGrams);
     }
 
     // Actualizar el estado del almacén
@@ -273,6 +345,11 @@ export function ReportDaily() {
                 </SelectItem>
               ))}
             </CustomSelect>
+            {(warehouseAge.weeks && warehouseAge.days) && (
+              <div className="mt-2 text-sm text-gray-700">
+                Edad: {warehouseAge.weeks} semanas {warehouseAge.days} días
+              </div>
+            )}
           </div>
         </div>
 
@@ -305,12 +382,17 @@ export function ReportDaily() {
         <div className="">
           <h6 className="text-xl font-bold mb-4">Alimentos</h6>
           {warehousesData?.GrupoIdGranjaAlimentos && warehousesData.GrupoIdGranjaAlimentos.length > 0 ? (
-            <ProductList
-              products={warehousesData.GrupoIdGranjaAlimentos || []}
-              onInputChange={(productId, value) =>
-                handleInputChange(productId, value, 'GrupoIdGranjaAlimentos')
-              }
-            />
+            <div>
+              <ProductList
+                products={warehousesData.GrupoIdGranjaAlimentos || []}
+                onInputChange={(productId, value) =>
+                  handleInputChange(productId, value, 'GrupoIdGranjaAlimentos')
+                }
+              />
+              <div className="mt-2 text-lg text-gray-700">
+                {mortality <= 0 ? 'Gramos ave por día: ' + 0 : 'Gramos ave por día: ' + (gramsBirdDay / (mortality ? mortality : birdsNumber)).toFixed(2)}
+              </div>
+            </div>
           ) : (
             <p className="text-gray-500">No hay productos disponibles.</p>
           )}
@@ -318,12 +400,17 @@ export function ReportDaily() {
         <div className="">
           <h6 className="text-xl font-bold mb-4">Calcio</h6>
           {warehousesData?.GrupoIdGranjaCalcio && warehousesData.GrupoIdGranjaCalcio.length > 0 ? (
-            <ProductList
-              products={warehousesData.GrupoIdGranjaCalcio || []}
-              onInputChange={(productId, value) =>
-                handleInputChange(productId, value, 'GrupoIdGranjaCalcio')
-              }
-            />
+            <div>
+              <ProductList
+                products={warehousesData.GrupoIdGranjaCalcio || []}
+                onInputChange={(productId, value) =>
+                  handleInputChange(productId, value, 'GrupoIdGranjaCalcio')
+                }
+              />
+              <div className="mt-2 text-lg text-gray-700">
+                {mortality <= 0 ? 'Gramos ave por día: ' + 0 : 'Gramos ave por día: ' + (gramsCalcioDay / (mortality ? mortality : birdsNumber)).toFixed(2)}
+              </div>
+            </div>
           ) : (
             <p className="text-gray-500">No hay productos disponibles.</p>
           )}

@@ -29,4 +29,8 @@ interface WarehouseData{
   GrupoIdGranjaCalcio?: Product[];
   GrupoIdGranjaProduccion?: Product[];
 }
-export type { FormReportDaily,WarehouseData,Product };
+interface WarehouseAge{
+  weeks?: number;
+  days?: number;
+}
+export type { FormReportDaily,WarehouseData,Product,WarehouseAge };
