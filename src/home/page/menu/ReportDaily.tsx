@@ -35,7 +35,7 @@ export function ReportDaily() {
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
   const [loading, setLoading] = useState(false);
-  const nitStore  = useAuthStore(state => state.nit);
+  const nitStore = useAuthStore(state => state.nit);
 
   /* HOOKS */
   const { apiService } = useApi();
@@ -77,10 +77,10 @@ export function ReportDaily() {
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string, name: string) => {
     setSelectedOption({ id: almacenid, name: name });
-
+    const dateToSend = selectedDate?.toISOString().split("T")[0];
     try {
       setLoading(true);
-      const response = await productService.getProductsByWarehouse(`${almacenid}`)
+      const response = await productService.getProductsByWarehouse(`${dateToSend}`,`${almacenid}`)
       const { data, status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);
@@ -95,67 +95,79 @@ export function ReportDaily() {
   /**
    * * Función para manejar el envío del formulario
    */
+
+  const grupoNombreMap: Record<string, string> = {
+    "15001": "Mortalidad",
+    "15003": "Alimentos",
+    "15004": "Medicamentos",
+    "15005": "Calcio",
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    const productos = [
+      ...(warehousesData?.GrupoIdGranjaAnimales ?? []),
+      ...(warehousesData?.GrupoIdGranjaMedicamentos ?? []),
+      ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
+      ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
+    ].flatMap(producto => {
+       const seccion = grupoNombreMap[producto.grupo] || "Otro";
+      if (producto.ManejaLotes === "S") {
+        return (producto.lotes ?? [])
+          .filter(lote => lote.qtyToAdd !== undefined)
+          .map(lote => ({
+            productId: producto.productId,
+            cantidad: lote.qtyToAdd,
+            seccion,
+            numeroLote: lote.numeroLote,
+          }));
+      } else if (producto.qtyToAdd !== undefined) {
+        return [{
+          productId: producto.productId,
+          cantidad: producto.qtyToAdd,
+          seccion,
+          numeroLote:null
+        }];
+      }
+
+      return [];
+    });
 
     const requestData = {
       nitStore: nitStore,
       fecha: formattedDate,
       warehouseId: selectedOption.id.trim(),
-      observaciones: formReportDaily.observation.trim() ? formReportDaily.observation.trim() : undefined,
+      observaciones: formReportDaily.observation.trim()
+        ? formReportDaily.observation.trim()
+        : undefined,
       modul: "Report",
       produccion: {
-      Huevos: formReportDaily.eggs ? formReportDaily.eggs : undefined,
-      Picados: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
-      Forro: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
-      Quebrado: formReportDaily.eggs_broken ? formReportDaily.eggs_broken : undefined,
+        Huevos: formReportDaily.eggs ? formReportDaily.eggs : undefined,
+        Picados: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
+        Forro: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Quebrado: formReportDaily.eggs_broken ? formReportDaily.eggs_broken : undefined,
       },
-      productos: [
-      ...(warehousesData?.GrupoIdGranjaAnimales
-        ?.filter(product => product.qtyToAdd !== undefined)
-        .map(product => ({
-        productId: product.productId,
-        cantidad: product.qtyToAdd,
-        seccion: "Mortalidad",
-        })) ?? []),
-      ...(warehousesData?.GrupoIdGranjaMedicamentos
-        ?.filter(product => product.qtyToAdd !== undefined)
-        .map(product => ({
-        productId: product.productId,
-        cantidad: product.qtyToAdd,
-        seccion: "Medicamentos",
-        })) ?? []),
-      ...(warehousesData?.GrupoIdGranjaAlimentos
-        ?.filter(product => product.qtyToAdd !== undefined)
-        .map(product => ({
-        productId: product.productId,
-        cantidad: product.qtyToAdd,
-        seccion: "Alimentos",
-        })) ?? []),
-      ...(warehousesData?.GrupoIdGranjaCalcio
-        ?.filter(product => product.qtyToAdd !== undefined)
-        .map(product => ({
-        productId: product.productId,
-        cantidad: product.qtyToAdd,
-        seccion: "Calcio",
-        })) ?? []),
-      ],
+      productos,
     };
+    console.log("🚀 ~ handleSubmit ~ requestData:", requestData)
+    
     if (!requestData.warehouseId) {
       setLoading(false);
       toast.error("Debe seleccionar un lote.");
       return;
     }
 
-    if ((!requestData.produccion.Huevos &&
-        !requestData.produccion.Picados &&
-        !requestData.produccion.Forro &&
-        !requestData.produccion.Quebrado &&
-        requestData.productos.length === 0)
+    if (
+      !requestData.produccion.Huevos ||
+      !requestData.produccion.Picados ||
+      !requestData.produccion.Forro ||
+      !requestData.produccion.Quebrado ||
+      requestData.productos.length === 0
     ) {
       setLoading(false);
-      toast.error("Debe ingresar al menos un dato para enviar.");
+      toast.error("Debe ingresar todos los datos dato para enviar.");
       return;
     }
 
@@ -190,7 +202,7 @@ export function ReportDaily() {
    */
   function handleInputChange(productId: string, value: string, currentDataKey: string): void {
     const newWarehouseDataGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])];
-  
+
     // Buscar el producto o lote correspondiente
     const productOrLote = newWarehouseDataGroup.find(product => {
       if (product.lotes && product.lotes.length > 0) {
@@ -198,13 +210,13 @@ export function ReportDaily() {
       }
       return product.productId === productId;
     });
-  
+
     if (productOrLote) {
       if (productOrLote.lotes && productOrLote.lotes.length > 0) {
         // Si es un lote, actualizar el lote específico
         const loteToUpdate = productOrLote.lotes.find(lote => `${productOrLote.productId}-${lote.numeroLote}` === productId);
         if (loteToUpdate) {
-          if (loteToUpdate.invenActua < Number(value.replace(/,/g, ''))) {
+          if (Number(loteToUpdate.invenActua) < Number(value.replace(/,/g, ''))) {
             toast.error(`La cantidad supera el inventario disponible: ${parseFloat(Number(loteToUpdate.invenActua).toFixed(2)).toLocaleString()}`);
             loteToUpdate.qtyToAdd = parseFloat(Number(loteToUpdate.invenActua).toFixed(2));
           } else {
@@ -221,7 +233,7 @@ export function ReportDaily() {
         }
       }
     }
-  
+
     // Actualizar el estado del almacén
     setWarehouseData((prevState) => ({
       ...prevState,
@@ -229,13 +241,13 @@ export function ReportDaily() {
     }));
   }
 
-  
+
   return (
     <div className="w-full p-4 overflow-scroll h-screen">
-      <LoadingSpinner 
-        loading={loading} 
-        type="bounce" 
-        size={55} 
+      <LoadingSpinner
+        loading={loading}
+        type="bounce"
+        size={55}
       />
       <form className="w-full space-y-4" onSubmit={handleSubmit}>
         <div className="w-full flex space-x-4">

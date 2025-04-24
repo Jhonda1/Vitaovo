@@ -235,7 +235,7 @@ export function ClasificationProduct() {
         <div className="flex justify-between items-center mb-4">
           <h6 className="text-2xl font-bold">Clasificación de Productos</h6>
           <span className="text-lg font-semibold">
-            Pendientes por clasificar: {Number(formReportDaily.eggs) - Object.values(quantities).reduce((acc, curr) => acc + curr, 0)}
+            Pendientes por clasificar: {Number(totalEggs) - Object.values(quantities).reduce((acc, curr) => acc + curr, 0)}
           </span>
         </div>
         {warehousesData?.GrupoIdGranjaProduccion && warehousesData.GrupoIdGranjaProduccion.length > 0 ? (
