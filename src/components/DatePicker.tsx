@@ -11,9 +11,10 @@ interface DatePickerProps {
   selectedDate?: Date;
   onDateChange: (date: Date | undefined) => void;
   label?: string; // Nuevo prop para el texto del label
+  mode?: "single" | "range"
 }
 
-export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange, label }) => {
+export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange, label,mode='single' }) => {
   const [date, setDate] = useState<Date | undefined>(selectedDate || new Date()); // Estado para manejar la fecha seleccionada
   const [isOpen, setIsOpen] = useState(false); // Estado para controlar el Popover
 
@@ -30,19 +31,42 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChan
         <PopoverTrigger asChild>
           <Button
             id="date"
-            variant="secondary"
+            variant="outline"
             className="w-full justify-start text-left font-normal"
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "PPP", { locale: es }) : <span>Selecciona una fecha</span>}
+            {mode =='single' &&( 
+              date  
+                ? format(date, "PPP", { locale: es }) 
+                :  <span>Selecciona una fecha</span>
+              )
+            }
+
+            {mode=='range' &&( 
+              date?.from ? (
+                date.to ? (
+                  <>
+                    {format(date.from, "yyyy-MM-dd")} -{" "}
+                    {format(date.to, "yyyy-MM-dd")}
+                  </>
+                ) : (
+                  format(date.from, "yyyy-MM-dd")
+                )
+              ) : (
+                <span>Selecciona una fecha</span>
+              ))
+            }
+            
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
-            mode="single"
+            initialFocus
+            mode={mode}
+            defaultMonth = {date?.from}
             selected={date}
             onSelect={handleDateChange}
-            initialFocus
+            numberOfMonth={mode == 'single' ? 1 : 2}
           />
         </PopoverContent>
       </Popover>

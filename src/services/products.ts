@@ -33,9 +33,9 @@ export class ProductsService {
     );
   }
 
-  getReportByDateAndWarehouse(date: string, warehouseId: string) {
+  getReportByDateAndWarehouse(from: string,to:string) {
     return this.apiService.get(
-      `/products/Report/${date}/warehouse/${warehouseId}`
+      `/products/Report/from/${from}/to/${to}/warehouse`
     );
   }
 
