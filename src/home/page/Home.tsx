@@ -1,11 +1,14 @@
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { WrapperHomePages } from "../components/WrapperHomePages";
 import { useSidebarMenu } from "@/hooks/useSidebarMenu";
 
 export const Home = () => {
-  const {ComponentMenu} = useSidebarMenu()
+  const { ComponentMenu } = useSidebarMenu();
   return (
-    <WrapperHomePages>
-      <ComponentMenu />
-    </WrapperHomePages>
+    <SidebarProvider>
+      <WrapperHomePages>
+        <ComponentMenu />
+      </WrapperHomePages>
+    </SidebarProvider>
   );
 };

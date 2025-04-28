@@ -181,7 +181,7 @@ export function ListReport() {
           </div> */}
         </div>
 
-        <div className="w-auto overflow-x-auto flex max-w-[50%]">
+        <div className="w-auto overflow-x-auto flex">
           {Object.entries(warehousesData)?.map(([index, element]) => (
             <div
               className="mx-2 border rounded-2xl border-slate-200 p-4"
