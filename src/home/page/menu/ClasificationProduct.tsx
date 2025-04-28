@@ -15,32 +15,32 @@ import { toast } from "sonner";
 import { ProductClasification } from "@/components/ProductClasification";
 
 const initialFormReportDaily: FormReportDaily = {
-  'observation' : '',
-  'eggs':0,
-  'eggs_lining':0,
-  'eggs_chopped':0,
-  'eggs_broken':0,
+  'observation': '',
+  'eggs': 0,
+  'eggs_lining': 0,
+  'eggs_chopped': 0,
+  'eggs_broken': 0,
 }
 
 export function ClasificationProduct() {
   /* STATE */
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedOption, setSelectedOption] = useState<{id: string, name: string}>({id: "", name: ""});
+  const [selectedOption, setSelectedOption] = useState<{ id: string, name: string }>({ id: "", name: "" });
   const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
-  );  
+  );
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const [loading, setLoading] = useState(false);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
 
-  
+
   /* HOOKS */
   const { apiService } = useApi();
   const warehouseService = new WarehouseService(apiService);
   const productService = new ProductsService(apiService);
-  const nitStore  = useAuthStore(state => state.nit);
-  
+  const nitStore = useAuthStore(state => state.nit);
+
 
   /* EFFECTS */
   useEffect(() => {
@@ -49,9 +49,9 @@ export function ClasificationProduct() {
       try {
         setLoading(true);
         const response = await warehouseService.getWarehouses();
-        const {data, status} = response as AxiosResponse;
-        if(status === 200){
-          const almacenes = data.warehouses.map((almacen: {id: string, name: string}) => ({
+        const { data, status } = response as AxiosResponse;
+        if (status === 200) {
+          const almacenes = data.warehouses.map((almacen: { id: string, name: string }) => ({
             value: almacen.id,
             label: almacen.name,
           }));
@@ -126,13 +126,21 @@ export function ClasificationProduct() {
       return;
     }
 
+    // Verificar si todavía hay pendientes por clasificar
+    const pendientes = Number(totalEggs) - Object.values(quantities).reduce((acc, curr) => acc + curr, 0);
+    if (pendientes > 0) {
+      setLoading(false);
+      toast.error(`Aún quedan ${pendientes} huevos por clasificar. Completa la clasificación antes de enviar.`);
+      return;
+    }
+
     const filteredProducts = Object.entries(quantities)
       .filter(([_, quantity]) => quantity > 0)
       .map(([productId, quantity]) => ({
         productId,
-      cantidad: quantity,
-      seccion: 'Produccion'
-    }));
+        cantidad: quantity,
+        seccion: 'Produccion'
+      }));
 
     if (filteredProducts.length === 0) {
       setLoading(false);
@@ -151,8 +159,8 @@ export function ClasificationProduct() {
 
     try {
       const response = await productService.inserProductInventari({ requestData });
-      const {status} = response as AxiosResponse;
-      if(status === 200){
+      const { status } = response as AxiosResponse;
+      if (status === 200) {
         setLoading(false);
         setSelectedDate(new Date());
         setSelectedOption({ id: "", name: "" });
@@ -167,15 +175,24 @@ export function ClasificationProduct() {
       console.error("Error al enviar los datos:", error);
       toast.error("Error al guardar los datos.");
     }
- 
+
   };
 
   let totalEggs = Number(formReportDaily.eggs) + Number(formReportDaily.eggs_lining) + Number(formReportDaily.eggs_chopped) + Number(formReportDaily.eggs_broken);
-  if(isNaN(totalEggs)) {
+  if (isNaN(totalEggs)) {
     totalEggs = 0;
   }
 
   const handleQuantityChange = (productName: string, quantity: number) => {
+    const currentTotal = Object.values(quantities).reduce((acc, curr) => acc + curr, 0);
+    const previousQuantity = quantities[productName] || 0;
+    const newTotal = currentTotal - previousQuantity + quantity;
+
+    if (newTotal > Number(totalEggs)) {
+      toast.error("No puedes clasificar más de los huevos disponibles.");
+      return; // No actualices si se pasa
+    }
+
     console.log("Cantidad actualizada:", productName, quantity);
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
@@ -185,11 +202,11 @@ export function ClasificationProduct() {
 
   return (
     <div className="w-full p-4 overflow-scroll h-screen">
-      <LoadingSpinner 
-        loading={loading} 
-        type="bounce" 
-        size={55} 
-      /> 
+      <LoadingSpinner
+        loading={loading}
+        type="bounce"
+        size={55}
+      />
       <form className="w-full space-y-4" onSubmit={handleSubmit}>
         <div className="w-full flex space-x-4">
           <div className="w-1/2">
@@ -209,27 +226,27 @@ export function ClasificationProduct() {
               defaultChecked={selectedOption.id ? `${selectedOption.id}|${selectedOption.name}` : ''}
             >
               {options.map((option) => (
-              <SelectItem key={option.value} value={option.value+'|'+option.label} defaultChecked={option.value === selectedOption.id}>
-                {option.label}
-              </SelectItem>
+                <SelectItem key={option.value} value={option.value + '|' + option.label} defaultChecked={option.value === selectedOption.id}>
+                  {option.label}
+                </SelectItem>
               ))}
             </CustomSelect>
           </div>
         </div>
 
         <div className="">
-            <h6 className="text-2xl font-bold mb-4">Producción</h6>
-            <div className="grid  gap-4">
+          <h6 className="text-2xl font-bold mb-4">Producción</h6>
+          <div className="grid  gap-4">
             <div className="flex items-center space-x-2">
-                <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
-                <FormProduction id="Huevos" label="Huevos" value={Number(formReportDaily.eggs).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs: e.target.value.replace(/[^0-9,]/g, "")}))} disabled={true}/>
-                <FormProduction id="Picados" label="Picado" value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
-                <FormProduction id="Forro" label="Forro" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
-                <FormProduction id="Quebrados" label="Quebrado" value={Number(formReportDaily.eggs_broken).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_broken: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
-                <FormProduction id="total" label={`Total`} value={Number(totalEggs).toLocaleString("es-CO")} disabled={true}/>
-                </div>
+              <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
+                <FormProduction id="Huevos" label="Huevos" value={Number(formReportDaily.eggs).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: e.target.value.replace(/[^0-9,]/g, "") }))} disabled={true} />
+                <FormProduction id="Picados" label="Picado" value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} disabled={true} />
+                <FormProduction id="Forro" label="Forro" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} disabled={true} />
+                <FormProduction id="Quebrados" label="Quebrado" value={Number(formReportDaily.eggs_broken).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} disabled={true} />
+                <FormProduction id="total" label={`Total`} value={Number(totalEggs).toLocaleString("es-CO")} disabled={true} />
+              </div>
             </div>
-            </div>
+          </div>
         </div>
 
         <div className="flex justify-between items-center mb-4">

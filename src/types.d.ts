@@ -14,11 +14,13 @@ interface Product {
     fechaVence: string | null; 
     invenActua: string; 
     qtyToAdd?:number
+    cantidad?:number
   }[];
   productId: string; // Identificador único del producto
   name: string; // Nombre del producto
   invenactua: number; // Inventario actual del producto
   qtyToAdd?:number
+  cantidad?:number
 }
 
 

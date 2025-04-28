@@ -23,7 +23,7 @@ export const ProductClasification: React.FC<ProductClasificationProps> = ({
 
       {/* Input para la cantidad */}
         <Input
-          type="text"
+          type="number"
           value={quantity ? Number(quantity).toLocaleString("es-CO") : ""}
           onChange={(e) => {
             const rawValue = e.target.value.replace(/[^0-9,]/g, "");

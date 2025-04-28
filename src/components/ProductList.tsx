@@ -37,10 +37,10 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
               <div className="w-1/3">
                 <Label className="font-bold text-center block">Cantidad</Label>
                 <Input
-                  type="text"
+                  type="number"
                   id={`${product.productId}-${lote.numeroLote}`}
                   placeholder="Cantidad"
-                  value={lote.qtyToAdd !== undefined ? Number(lote.qtyToAdd).toLocaleString("es-CO") : ""}
+                  value={(lote.qtyToAdd !== undefined ? Number(lote.qtyToAdd).toLocaleString("es-CO") : (lote.cantidad? Number(lote.cantidad).toLocaleString("es-CO") : ""))}
                   onChange={(e) => {
                     const rawValue = e.target.value.replace(/[^0-9,]/g, ""); // Filtrar solo números y comas
                     const numericValue = rawValue.replace(/,/g, ""); // Eliminar comas
@@ -80,7 +80,7 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
                 type="text"
                 id={`${product.productId}`}
                 placeholder="Cantidad"
-                value={product.qtyToAdd ? Number(product.qtyToAdd).toLocaleString("es-CO") : ""}
+                value={product.qtyToAdd ? Number(product.qtyToAdd).toLocaleString("es-CO") : (product.cantidad? Number(product.cantidad).toLocaleString("es-CO") : "")}
                 onChange={(e) => {
                   const rawValue = e.target.value.replace(/[^0-9,]/g, "");
                   const numericValue = rawValue.replace(/,/g, "");

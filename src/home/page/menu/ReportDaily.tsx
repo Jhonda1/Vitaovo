@@ -37,6 +37,7 @@ export function ReportDaily() {
   const [gramsCalcioDay, setGramsCalcioDay] = useState<number | null>(0); // valor total de calcio consumido en gramos
   const [mortality, setMortality] = useState<number | null>(); // total de aves - mortalidad
   const [birdsNumber, setBirdsNumber] = useState<number | null>(); // inventario de aves del lote seleccionado
+  const [edit, setEdit] = useState<boolean>(false); // editar reporte diario
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
   const [loading, setLoading] = useState(false);
@@ -79,25 +80,59 @@ export function ReportDaily() {
     setFormReportDaily(initialFormReportDaily)
   }, [selectedOption])
 
-  // Función para manejar la selección de un almacén
-  const handleAlmacenSelect = async (almacenid: string, name: string) => {
-    setSelectedOption({ id: almacenid, name: name });
-    const dateToSend = selectedDate?.toISOString().split("T")[0];
+  const getProductsByWarehouse = async (date: any, almacenid: string) => {
     try {
       setLoading(true);
-      const response = await productService.getProductsByWarehouse(`${dateToSend}`, `${almacenid}`)
+      const response = await productService.getProductsByWarehouse(date, almacenid);
       const { data, status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);
         setWarehouseData(data.products);
         setWarehouseAge(data.warehouseAge);
+        setEdit(data.edit);
+        const production = {
+          'observation': data.production?.Observacion,
+          'eggs': data.production?.Huevos,
+          'eggs_lining': data.production?.Forro,
+          'eggs_chopped': data.production?.Picados,
+          'eggs_broken': data.production?.Quebrados,
+        }
+        setFormReportDaily(production);
+        /* Object.entries(data.products).forEach(([groupName, groupProducts]) => {
+          groupProducts.forEach(product => {
+            console.log("groupName:", groupName);
+            console.log("ManejaLotes:", product.ManejaLotes);
+            if (product.ManejaLotes == 'S') {
+              Object.values(product.lotes).map(value =>{
+                console.log('value: ',value);
+              })
+            }else{
+              handleInputChange(product.productId,product.cantidad,groupName)
+            }
+          });
+        }); */
         let birdsSum = getTotalInveActua(data.products.GrupoIdGranjaAnimales);
         setBirdsNumber(birdsSum);
-
       }
     } catch (error) {
       setLoading(false);
       console.error("Error al obtener los datos del almacén:", error);
+    }
+  }
+
+  // Función para manejar la selección de un almacén
+  const handleAlmacenSelect = async (almacenid: string, name: string) => {
+    setSelectedOption({ id: almacenid, name: name });
+    const dateToSend = selectedDate?.toISOString().split("T")[0];
+    await getProductsByWarehouse(dateToSend, almacenid);
+  };
+
+  // Función para manejar el cambio de fecha
+  const handleDateChange = async (date: Date) => {
+    setSelectedDate(date);
+    const dateToSend = date.toISOString().split("T")[0];
+    if (selectedOption.id) {
+      await getProductsByWarehouse(dateToSend, selectedOption.id);
     }
   };
 
@@ -216,8 +251,9 @@ export function ReportDaily() {
    * @param currentDataKey Clave del objeto de datos del almacén
    */
   function handleInputChange(productId: string, value: string, currentDataKey: string): void {
+    console.log("🚀 ~ handleInputChange ~ productId:", productId)
     const newWarehouseDataGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])];
-
+    
     // Buscar el producto o lote correspondiente
     const productOrLote = newWarehouseDataGroup.find(product => {
       if (product.lotes && product.lotes.length > 0) {
@@ -289,7 +325,7 @@ export function ReportDaily() {
       setGramsBirdDay(updatedGrams);
     }
 
-    // Actualizar la Calcio dinámicamente
+    // Actualizar el Calcio dinámicamente
     if (currentDataKey === 'GrupoIdGranjaCalcio') {
       const totalQtyToAdd = newWarehouseDataGroup.reduce((acc, product) => {
         if (product.lotes && product.lotes.length > 0) {
@@ -313,6 +349,10 @@ export function ReportDaily() {
     }));
   }
 
+  const editReport = async () => {
+    console.log("🚀 ~ editReport ~ editando:")
+  }
+
 
   return (
     <div className="w-full p-4 overflow-scroll h-screen">
@@ -328,7 +368,7 @@ export function ReportDaily() {
               label="Fecha:"
               selectedDate={selectedDate}
               onDateChange={(date) => {
-                setSelectedDate(date);
+                handleDateChange(date ?? new Date());
               }}
             />
           </div>
@@ -345,11 +385,11 @@ export function ReportDaily() {
                 </SelectItem>
               ))}
             </CustomSelect>
-            {(warehouseAge.weeks && warehouseAge.days) && (
+            {(warehouseAge.weeks !== undefined && warehouseAge.days !== undefined) ?
               <div className="mt-2 text-sm text-gray-700">
                 Edad: {warehouseAge.weeks} semanas {warehouseAge.days} días
-              </div>
-            )}
+              </div> : ''
+            }
           </div>
         </div>
 
@@ -443,9 +483,15 @@ export function ReportDaily() {
           />
         </div>
 
-        <Button type="submit" className="w-full flex items-center justify-center space-x-2 mb-10">
-          <span>Enviar</span>
-        </Button>
+        {edit ?
+          <Button onClick={() => editReport()} className="w-full flex items-center justify-center space-x-2 mb-10">
+            <span>Editar</span>
+          </Button>
+          : <Button type="submit" className="w-full flex items-center justify-center space-x-2 mb-10">
+            <span>Enviar</span>
+          </Button>
+        }
+
       </form>
     </div>
   );
