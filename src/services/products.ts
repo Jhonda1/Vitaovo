@@ -27,6 +27,10 @@ export class ProductsService {
     return this.apiService.post(`/products/insertProductInventario`, data);
   }
 
+  editDailyReport(data: object) {
+    return this.apiService.post(`/products/editDailyReport`, data);
+  }
+
   getRegisteredProductsByDateAndWarehouse(date: string, warehouseId: string) {
     return this.apiService.get(
       `/products/registered-products/${date}/warehouse/${warehouseId}`

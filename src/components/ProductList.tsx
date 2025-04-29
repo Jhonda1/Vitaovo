@@ -42,6 +42,7 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
                   placeholder="Cantidad"
                   value={(lote.qtyToAdd !== undefined ? Number(lote.qtyToAdd).toLocaleString("es-CO") : (lote.cantidad? Number(lote.cantidad).toLocaleString("es-CO") : ""))}
                   onChange={(e) => {
+                    console.log("🚀 ~ {products.flatMap ~ e.target.value:", e.target.value)
                     const rawValue = e.target.value.replace(/[^0-9,]/g, ""); // Filtrar solo números y comas
                     const numericValue = rawValue.replace(/,/g, ""); // Eliminar comas
                     const updatedValue = numericValue ? parseFloat(numericValue) : undefined;
@@ -82,6 +83,7 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
                 placeholder="Cantidad"
                 value={product.qtyToAdd ? Number(product.qtyToAdd).toLocaleString("es-CO") : (product.cantidad? Number(product.cantidad).toLocaleString("es-CO") : "")}
                 onChange={(e) => {
+                  console.log("🚀 ~ {products.flatMap ~ e.target.value:", e.target.value)
                   const rawValue = e.target.value.replace(/[^0-9,]/g, "");
                   const numericValue = rawValue.replace(/,/g, "");
                   onInputChange(product.productId, numericValue);
