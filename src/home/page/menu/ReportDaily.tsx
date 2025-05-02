@@ -159,7 +159,7 @@ export function ReportDaily() {
   const handleDateChange = async (date: Date) => {
     setSelectedDate(date);
     const dateToSend = date.toISOString().split("T")[0];
-    if (selectedOption.id && edit == false) {
+    if (selectedOption.id) {
       await getProductsByWarehouse(dateToSend, selectedOption.id);
     }
   };
@@ -251,11 +251,12 @@ export function ReportDaily() {
 
     try {
       const response = await productService.inserProductInventari({ requestData });
-
+      
       const { status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);
         setEdit(false);
+        setWarehouseAge({});
         setSelectedDate(new Date());
         setSelectedOption({ id: "", name: "" });
         setWarehouseData({});
