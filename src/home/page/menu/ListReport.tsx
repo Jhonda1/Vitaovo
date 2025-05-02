@@ -10,7 +10,7 @@ import { ProductsService } from "@/services/products";
 import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { FormProduction } from "@/home/components/FormProduction";
-import { format } from "date-fns";
+import { format, startOfMonth } from "date-fns"; // Importamos `startOfMonth`
 
 const initialFormReportDaily: FormReportDaily = {
   observation: "",
@@ -22,14 +22,13 @@ const initialFormReportDaily: FormReportDaily = {
 
 export function ListReport() {
   /* STATE */
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedStartDate, setSelectedStartDate] = useState<Date>(startOfMonth(new Date())); // Primer día del mes actual
+  const [selectedEndDate, setSelectedEndDate] = useState<Date>(new Date()); // Fecha actual
   const [selectedOption, setSelectedOption] = useState<{
     id: string;
     name: string;
   }>({ id: "", name: "" });
-  const [options, setOptions] = useState<{ value: string; label: string }[]>(
-    []
-  );
+  const [options, setOptions] = useState<{ value: string; label: string }[]>([]);
   const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
   const [loading, setLoading] = useState(false);
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily[]>([]);
@@ -67,25 +66,32 @@ export function ListReport() {
     fetchAlmacenes();
   }, []);
 
-  // Función para manejar la selección de un almacén
-  const handleAlmacenSelect = async (almacenid: string, name: string) => {
-    setSelectedOption({ id: almacenid, name: name });
-    await fetchWarehouseData(almacenid, selectedDate);
-  };
+  // Efecto para cargar los datos automáticamente al ingresar al módulo
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      await handleDateChange(selectedStartDate, selectedEndDate);
+    };
+
+    fetchInitialData();
+  }, [selectedStartDate, selectedEndDate]);
 
   // Función para manejar el cambio de fecha
-  const handleDateChange = async (date: Date) => {
-    setSelectedDate(date);
+  const handleDateChange = async (startDate: Date, endDate: Date) => {
+    console.log("fechas", { startDate, endDate });
+    setSelectedStartDate(startDate);
+    setSelectedEndDate(endDate);
 
-    await fetchWarehouseData(date);
+    if (startDate && endDate) {
+      await fetchWarehouseData({ from: startDate, to: endDate });
+    } else {
+      toast.error("Debe llenar ambas fechas para continuar.");
+    }
   };
 
-  const fetchWarehouseData = async (date: Date) => {
-    console.log(date);
-    const { from, to } = date;
+  const fetchWarehouseData = async (dateRange: { from: Date; to: Date }) => {
+    const { from, to } = dateRange;
     const fromSerialize = format(from, "yyyy-MM-dd");
     const toSerialize = format(to, "yyyy-MM-dd");
-    console.log({ fromSerialize, toSerialize });
 
     try {
       setLoading(true);
@@ -97,58 +103,41 @@ export function ListReport() {
       if (status === 200) {
         setLoading(false);
         setWarehouseData(data.Production);
-        console.log(data);
-        const dataParserProduction = data?.products.map((element) => {
-          return {
-            ...initialFormReportDaily,
-            eggs: element?.Huevos || initialFormReportDaily.eggs,
-            eggs_lining: element?.Forro || initialFormReportDaily.eggs_lining,
-            eggs_chopped:
-              element?.Picados || initialFormReportDaily.eggs_chopped,
-            eggs_broken:
-              element?.Quebrados || initialFormReportDaily.eggs_broken,
-            observation:
-              element?.Observacion || initialFormReportDaily.observation,
-            AlmacenId: element.AlmacenId,
-            nombre:element.nombre
-          };
-        });
-        /* const updatedFormReportDaily = {
+
+        const dataParserProduction = data?.products.map((element) => ({
           ...initialFormReportDaily,
-          eggs: ProductProduction?.Huevos || initialFormReportDaily.eggs,
-          eggs_lining:
-            ProductProduction?.Forro || initialFormReportDaily.eggs_lining,
-          eggs_chopped:
-            ProductProduction?.Picados || initialFormReportDaily.eggs_chopped,
-          eggs_broken:
-            ProductProduction?.Quebrados || initialFormReportDaily.eggs_broken,
+          eggs: element?.Huevos || initialFormReportDaily.eggs,
+          eggs_lining: element?.Forro || initialFormReportDaily.eggs_lining,
+          eggs_chopped: element?.Picados || initialFormReportDaily.eggs_chopped,
+          eggs_broken: element?.Quebrados || initialFormReportDaily.eggs_broken,
           observation:
-            ProductProduction?.Observacion ||
-            initialFormReportDaily.observation,
-        }; */
+            element?.Observacion || initialFormReportDaily.observation,
+          AlmacenId: element.AlmacenId,
+          nombre: element.nombre,
+        }));
+
         setFormReportDaily(dataParserProduction);
       }
     } catch (error) {
       setLoading(false);
       console.error("Error al obtener los datos del almacén:", error);
+      toast.error("Error al obtener los datos del almacén.");
     }
   };
 
-  console.log({ formReportDaily });
+  function sumTotalProduction(warehouseId) {
+    let result = 0;
+    const findData = formReportDaily?.find(
+      (element) => element.AlmacenId == warehouseId
+    );
+    if (findData) {
+      const { AlmacenId, nombre, ...rest } = findData;
 
-  function sumTotalProduction(warehouseId){
-
-    let result = 0
-    const findData =formReportDaily?.find((element) => element.AlmacenId == warehouseId )
-    if(findData){
-      const {AlmacenId,nombre,...rest} = findData
-      
-      result = Object.values(rest).reduce((acc, value) => acc + Number(value), 0)
-        .toLocaleString("es-CO")
+      result = Object.values(rest)
+        .reduce((acc, value) => acc + Number(value), 0)
+        .toLocaleString("es-CO");
     }
-    return result
-      
-    
+    return result;
   }
   return (
     <div className="w-full p-4 overflow-scroll h-screen">
@@ -157,253 +146,255 @@ export function ListReport() {
         <div className="w-[60vw] flex space-x-4">
           <div className="w-1/2">
             <DatePicker
-              label="* Fecha:"
-              mode="range"
-              selectedDate={selectedDate}
+              label="* Fecha Inicial:"
+              selectedDate={selectedStartDate}
               onDateChange={(date) => {
-                handleDateChange(date ?? new Date());
+                const newStartDate = date ?? new Date();
+                setSelectedStartDate(newStartDate);
+                handleDateChange(newStartDate, selectedEndDate);
               }}
             />
           </div>
-          {/* <div className="w-1/2">
-            <CustomSelect
-              label="* Lote:"
-              placeholder="Selecciona un lote"
-              onChange={(value) => handleAlmacenSelect(value.split('|')[0], value.split('|')[1])}
-              defaultChecked={selectedOption.id ? `${selectedOption.id}|${selectedOption.name}` : ''}
-            >
-              {options.map((option) => (
-              <SelectItem key={option.value} value={option.value+'|'+option.label} defaultChecked={option.value === selectedOption.id}>
-                {option.label}
-              </SelectItem>
-              ))}
-            </CustomSelect>
-          </div> */}
+          <div className="w-1/2">
+            <DatePicker
+              label="* Fecha Final:"
+              selectedDate={selectedEndDate}
+              onDateChange={(date) => {
+                const newEndDate = date ?? new Date();
+                setSelectedEndDate(newEndDate);
+                handleDateChange(selectedStartDate, newEndDate);
+              }}
+            />
+          </div>
         </div>
 
-        <div className="w-auto overflow-x-auto flex max-w-[50%]">
-          {Object.entries(warehousesData)?.map(([index, element]) => (
-            <div
+        <div
+          className={`w-auto overflow-x-auto flex ${
+            Object.entries(warehousesData)?.length > 0 ? "max-w-[50%]" : "w-full"
+          }`}
+        >
+          {Object.entries(warehousesData)?.length > 0 ? (
+            Object.entries(warehousesData)?.map(([index, element]) => (
+              <div
               className="mx-2 border rounded-2xl border-slate-200 p-4"
               key={index}
-            >
-              <div className="min-w-[50rem]">
-                <h2>{formReportDaily.find(element=>element.AlmacenId == index)?.nombre || ''}</h2>
-                <h6 className="text-xl font-bold mb-4">Mortalidad</h6>
-                {element?.GrupoIdGranjaAnimales &&
-                element.GrupoIdGranjaAnimales.length > 0 ? (
+              >
+                <div className="min-w-[25rem]">
+                  <h2>{formReportDaily.find(element=>element.AlmacenId == index)?.nombre || ''}</h2>
+                  <h6 className="text-xl font-bold mb-4">Mortalidad</h6>
+                  {element?.GrupoIdGranjaAnimales &&
+                  element.GrupoIdGranjaAnimales.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
                     {element.GrupoIdGranjaAnimales.map((product) => (
-                      <div
-                        key={product.productId}
-                        className="flex items-center space-x-4"
-                      >
-                        <label className="w-1/2 text-gray-700">
-                          {product.name}
-                        </label>
-                        <input
-                          type="text"
-                          value={Number(product.qtyToAdd || 0).toLocaleString(
-                            "es-CO"
-                          )}
-                          disabled
-                          className="w-1/2 p-2 border rounded-md bg-gray-100 text-gray-700"
-                        />
-                      </div>
+                    <div
+                      key={product.productId}
+                      className="flex items-center space-x-4"
+                    >
+                      <label className="w-1/2 text-gray-700">
+                      {product.name}
+                      </label>
+                      <input
+                      type="text"
+                      value={Number(product.qtyToAdd || 0).toLocaleString(
+                        "es-CO"
+                      )}
+                      disabled
+                      className="w-1/2 p-2 border rounded-md bg-gray-100 text-gray-700"
+                      />
+                    </div>
                     ))}
                   </div>
-                ) : (
+                  ) : (
                   <p className="text-gray-500">
                     No hay Mortalidad agregado a este reporte.
                   </p>
-                )}
-              </div>
-              <div className="">
-                <h6 className="text-xl font-bold mb-4">Medicamentos</h6>
-                {element?.GrupoIdGranjaMedicamentos &&
-                element.GrupoIdGranjaMedicamentos.length > 0 ? (
+                  )}
+                </div>
+                <div className="min-w-[25rem]">
+                  <h6 className="text-xl font-bold mb-4">Medicamentos</h6>
+                  {element?.GrupoIdGranjaMedicamentos &&
+                  element.GrupoIdGranjaMedicamentos.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
                     {element.GrupoIdGranjaMedicamentos.map((product) => (
-                      <div
-                        key={product.productId}
-                        className="flex items-center space-x-4"
-                      >
-                        <label className="w-1/2 text-gray-700">
-                          {product.name}
-                        </label>
-                        <input
-                          type="text"
-                          value={Number(product.qtyToAdd || 0).toLocaleString(
-                            "es-CO"
-                          )}
-                          disabled
-                          className="w-1/2 p-2 border rounded-md bg-gray-100 text-gray-700"
-                        />
-                      </div>
+                    <div
+                      key={product.productId}
+                      className="flex items-center space-x-4"
+                    >
+                      <label className="w-1/2 text-gray-700">
+                      {product.name}
+                      </label>
+                      <input
+                      type="text"
+                      value={Number(product.qtyToAdd || 0).toLocaleString(
+                        "es-CO"
+                      )}
+                      disabled
+                      className="w-1/2 p-2 border rounded-md bg-gray-100 text-gray-700"
+                      />
+                    </div>
                     ))}
                   </div>
-                ) : (
+                  ) : (
                   <p className="text-gray-500">
                     No hay Medicamentos agregado a este reporte.
                   </p>
-                )}
-              </div>
-              <div className="">
-                <h6 className="text-xl font-bold mb-4">Alimentos</h6>
-                {element?.GrupoIdGranjaAlimentos &&
-                element.GrupoIdGranjaAlimentos.length > 0 ? (
+                  )}
+                </div>
+                <div className="min-w-[25rem]">
+                  <h6 className="text-xl font-bold mb-4">Alimentos</h6>
+                  {element?.GrupoIdGranjaAlimentos &&
+                  element.GrupoIdGranjaAlimentos.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
                     {element.GrupoIdGranjaAlimentos.map((product) => (
-                      <div
-                        key={product.productId}
-                        className="flex items-center space-x-4"
-                      >
-                        <label className="w-1/2 text-gray-700">
-                          {product.name}
-                        </label>
-                        <input
-                          type="text"
-                          value={Number(product.qtyToAdd || 0).toLocaleString(
-                            "es-CO"
-                          )}
-                          disabled
-                          className="w-1/2 p-2 border rounded-md bg-gray-100 text-gray-700"
-                        />
-                      </div>
+                    <div
+                      key={product.productId}
+                      className="flex items-center space-x-4"
+                    >
+                      <label className="w-1/2 text-gray-700">
+                      {product.name}
+                      </label>
+                      <input
+                      type="text"
+                      value={Number(product.qtyToAdd || 0).toLocaleString(
+                        "es-CO"
+                      )}
+                      disabled
+                      className="w-1/2 p-2 border rounded-md bg-gray-100 text-gray-700"
+                      />
+                    </div>
                     ))}
                   </div>
-                ) : (
+                  ) : (
                   <p className="text-gray-500">
                     No hay Alimentos agregado a este reporte.
                   </p>
-                )}
-              </div>
-              <div className="">
-                <h6 className="text-xl font-bold mb-4">Calcio</h6>
-                {element?.GrupoIdGranjaCalcio &&
-                element.GrupoIdGranjaCalcio.length > 0 ? (
+                  )}
+                </div>
+                <div className="min-w-[25rem]">
+                  <h6 className="text-xl font-bold mb-4">Calcio</h6>
+                  {element?.GrupoIdGranjaCalcio &&
+                  element.GrupoIdGranjaCalcio.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
                     {element.GrupoIdGranjaCalcio.map((product) => (
-                      <div
-                        key={product.productId}
-                        className="flex items-center space-x-4"
-                      >
-                        <label className="w-1/2 text-gray-700">
-                          {product.name}
-                        </label>
-                        <input
-                          type="text"
-                          value={Number(product.qtyToAdd || 0).toLocaleString(
-                            "es-CO"
-                          )}
-                          disabled
-                          className="w-1/2 p-2 border rounded-md bg-gray-100 text-gray-700"
-                        />
-                      </div>
+                    <div
+                      key={product.productId}
+                      className="flex items-center space-x-4"
+                    >
+                      <label className="w-1/2 text-gray-700">
+                      {product.name}
+                      </label>
+                      <input
+                      type="text"
+                      value={Number(product.qtyToAdd || 0).toLocaleString(
+                        "es-CO"
+                      )}
+                      disabled
+                      className="w-1/2 p-2 border rounded-md bg-gray-100 text-gray-700"
+                      />
+                    </div>
                     ))}
                   </div>
-                ) : (
+                  ) : (
                   <p className="text-gray-500">
                     No hay calcio agregado a este reporte.
                   </p>
-                )}
-              </div>
-              <div className="">
-                <h6 className="text-2xl font-bold mb-4">Producción</h6>
-                <div className="grid  gap-4">
-                  <div className="flex items-center space-x-2">
-                    <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
-                      <FormProduction
+                  )}
+                </div>
+                <div className="min-w-[25rem]">
+                  <h6 className="text-2xl font-bold mb-4">Producción</h6>
+                  <div className="grid  gap-4">
+                    <div className="flex items-center space-x-2">
+                        <div className="grid grid-cols-1 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
+                        <FormProduction
                         id="Huevos"
                         label="Huevos"
                         value={Number(
-                          formReportDaily.find(
-                            (element) => element.AlmacenId == index
-                          )?.eggs
+                        formReportDaily.find(
+                          (element) => element.AlmacenId == index
+                        )?.eggs
                         ).toLocaleString("es-CO")}
                         disabled={true}
-                      />
+                        vertical={false}
+                        />
                       <FormProduction
                         id="Picados"
                         label="Picado"
                         value={Number(
-                          formReportDaily.find(
-                            (element) => element.AlmacenId == index
-                          )?.eggs_lining
+                        formReportDaily.find(
+                          (element) => element.AlmacenId == index
+                        )?.eggs_lining
                         ).toLocaleString("es-CO")}
                         onChange={(e) =>
-                          setFormReportDaily((prevState) => ({
-                            ...prevState,
-                            eggs_lining: Number(
-                              e.target.value.replace(/[^0-9,]/g, "")
-                            ),
-                          }))
-                        }
+                        setFormReportDaily((prevState) => ({
+                          ...prevState,
+                          eggs_lining: Number(
+                          e.target.value.replace(/[^0-9,]/g, "")
+                          ),
+                        }))}
                         disabled={true}
+                        vertical={false}
                       />
                       <FormProduction
                         id="Forro"
-                        label="Forro"
+                        label="Sucio"
                         value={Number(
-                          formReportDaily.find(
-                            (element) => element.AlmacenId == index
-                          )?.eggs_chopped
+                        formReportDaily.find(
+                          (element) => element.AlmacenId == index
+                        )?.eggs_chopped
                         ).toLocaleString("es-CO")}
                         onChange={(e) =>
-                          setFormReportDaily((prevState) => ({
-                            ...prevState,
-                            eggs_chopped: Number(
-                              e.target.value.replace(/[^0-9,]/g, "")
-                            ),
-                          }))
-                        }
+                        setFormReportDaily((prevState) => ({
+                          ...prevState,
+                          eggs_chopped: Number(
+                          e.target.value.replace(/[^0-9,]/g, "")
+                          ),
+                        }))}
                         disabled={true}
+                        vertical={false}
                       />
                       <FormProduction
                         id="Quebrados"
                         label="Quebrado"
                         value={Number(
-                          formReportDaily.find(
-                            (element) => element.AlmacenId == index
-                          )?.eggs_broken
+                        formReportDaily.find(
+                          (element) => element.AlmacenId == index
+                        )?.eggs_broken
                         ).toLocaleString("es-CO")}
                         onChange={(e) =>
-                          setFormReportDaily((prevState) => ({
-                            ...prevState,
-                            eggs_broken: Number(
-                              e.target.value.replace(/[^0-9,]/g, "")
-                            ),
-                          }))
-                        }
+                        setFormReportDaily((prevState) => ({
+                          ...prevState,
+                          eggs_broken: Number(
+                          e.target.value.replace(/[^0-9,]/g, "")
+                          ),
+                        }))}
                         disabled={true}
+                        vertical={false}
                       />
                       <FormProduction
                         id="total"
                         label={`Total`}
-                        value={sumTotalProduction(index)}
+                        value={sumTotalProduction(index).toString()}
                         disabled={true}
+                        vertical={false}
                       />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-
-              <div className="">
-                <h6 className="text-xl font-bold mb-4">Observaciones</h6>
-                <textarea
-                  className="w-full p-2 border rounded-md"
-                  rows={4}
-                  maxLength={4000}
-                  value={
-                    formReportDaily.find(
-                      (element) => element.AlmacenId == index
-                    )?.observation
-                  }
-                  disabled={true}
-                />
+            ))
+            ) : (
+            <div className="flex justify-center items-center w-full h-full ">
+              <div className="p-6 max-w-sm bg-white border border-gray-200 rounded-lg shadow-md">
+              <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 text-center">
+                Sin Reportes
+              </h5>
+              <p className="mb-4 font-normal text-gray-700 text-center">
+                No hay reportes para el rango de fechas seleccionados.
+              </p>
               </div>
             </div>
-          ))}
+            )}
         </div>
       </form>
     </div>

@@ -52,7 +52,7 @@ export function NavUserSidebar(){
               }}
             >
               <LogOut />
-              Log out
+              Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
           <div className="mt-2 text-xs text-muted-foreground">
