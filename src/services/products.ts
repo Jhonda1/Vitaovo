@@ -7,9 +7,9 @@ export class ProductsService {
     this.apiService = apiService;
   }
 
-  getProductsByWarehouse(date: string, warehouseId: string) {
+  getProductsByWarehouse(date: string, warehouseId: string, storedNit:string) {
     return this.apiService.get(
-      `/products/productgrouped/${date}/warehouse/${warehouseId}`
+      `/products/productgrouped/${date}/warehouse/${warehouseId}/storedNit/${storedNit}`
     );
   }
 
@@ -25,6 +25,10 @@ export class ProductsService {
 
   inserProductInventari(data: object) {
     return this.apiService.post(`/products/insertProductInventario`, data);
+  }
+
+  editDailyReport(data: object) {
+    return this.apiService.post(`/products/editDailyReport`, data);
   }
 
   getRegisteredProductsByDateAndWarehouse(date: string, warehouseId: string) {

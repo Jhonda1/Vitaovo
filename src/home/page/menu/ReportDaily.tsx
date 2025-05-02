@@ -27,6 +27,7 @@ const initialFormReportDaily: FormReportDaily = {
 export function ReportDaily() {
   /* STATE */
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Estado para manejar la fecha seleccionada
+  const [oldDate, setOldDate] = useState<Date | null>(); // Estado para manejar la fecha anterior para el edit
   const [selectedOption, setSelectedOption] = useState<{ id: string, name: string }>({ id: "", name: "" });
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
@@ -37,10 +38,12 @@ export function ReportDaily() {
   const [gramsCalcioDay, setGramsCalcioDay] = useState<number | null>(0); // valor total de calcio consumido en gramos
   const [mortality, setMortality] = useState<number | null>(); // total de aves - mortalidad
   const [birdsNumber, setBirdsNumber] = useState<number | null>(); // inventario de aves del lote seleccionado
+  const [edit, setEdit] = useState<boolean>(false); // editar reporte diario
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
   const [loading, setLoading] = useState(false);
   const nitStore = useAuthStore(state => state.nit);
+  const [initialized, setInitialized] = useState(false);
 
   /* HOOKS */
   const { apiService } = useApi();
@@ -79,25 +82,85 @@ export function ReportDaily() {
     setFormReportDaily(initialFormReportDaily)
   }, [selectedOption])
 
-  // Función para manejar la selección de un almacén
-  const handleAlmacenSelect = async (almacenid: string, name: string) => {
-    setSelectedOption({ id: almacenid, name: name });
-    const dateToSend = selectedDate?.toISOString().split("T")[0];
+  useEffect(() => {
+    if (edit && warehousesData && !initialized) {
+      Object.entries(warehousesData).forEach(([groupName, groupProducts]) => {
+        groupProducts.forEach(product => {
+          if (product.ManejaLotes === 'S') {
+            Object.values(product.lotes).forEach(value => {
+              handleInputChange(
+                `${product.productId}-${value.numeroLote}`,
+                value.cantidad?.toString() || "",
+                groupName
+              );
+            });
+          } else {
+            handleInputChange(
+              product.productId,
+              product.cantidad?.toString() || "",
+              groupName
+            );
+          }
+        });
+      });
+
+      setInitialized(true);
+    }
+  }, [edit, warehousesData, initialized]);
+
+
+  const getProductsByWarehouse = async (date: any, almacenid: string) => {
+    setEdit(false);
     try {
       setLoading(true);
-      const response = await productService.getProductsByWarehouse(`${dateToSend}`, `${almacenid}`)
+      const response = await productService.getProductsByWarehouse(date, almacenid, nitStore);
       const { data, status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);
         setWarehouseData(data.products);
         setWarehouseAge(data.warehouseAge);
-        let birdsSum = getTotalInveActua(data.products.GrupoIdGranjaAnimales);
-        setBirdsNumber(birdsSum);
+        setEdit(data.edit);
 
+        // Este paso es clave: reinicia la bandera al cambiar de almacén
+        setInitialized(false);
+
+        if (data.edit) {
+          setOldDate(selectedDate);
+          const production = {
+            observation: data.production?.Observacion,
+            eggs: data.production?.Huevos,
+            eggs_lining: data.production?.Picados,
+            eggs_chopped: data.production?.Forro,
+            eggs_broken: data.production?.Quebrados,
+          };
+          setFormReportDaily(production);
+        } else {
+          setOldDate(null);
+          setFormReportDaily(initialFormReportDaily);
+        }
+
+        const birdsSum = getTotalInveActua(data.products.GrupoIdGranjaAnimales);
+        setBirdsNumber(birdsSum);
       }
     } catch (error) {
       setLoading(false);
       console.error("Error al obtener los datos del almacén:", error);
+    }
+  };
+
+  // Función para manejar la selección de un almacén
+  const handleAlmacenSelect = async (almacenid: string, name: string) => {
+    setSelectedOption({ id: almacenid, name: name });
+    const dateToSend = selectedDate?.toISOString().split("T")[0];
+    await getProductsByWarehouse(dateToSend, almacenid);
+  };
+
+  // Función para manejar el cambio de fecha
+  const handleDateChange = async (date: Date) => {
+    setSelectedDate(date);
+    const dateToSend = date.toISOString().split("T")[0];
+    if (selectedOption.id && edit == false) {
+      await getProductsByWarehouse(dateToSend, selectedOption.id);
     }
   };
 
@@ -192,6 +255,7 @@ export function ReportDaily() {
       const { status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);
+        setEdit(false);
         setSelectedDate(new Date());
         setSelectedOption({ id: "", name: "" });
         setWarehouseData({});
@@ -216,6 +280,7 @@ export function ReportDaily() {
    * @param currentDataKey Clave del objeto de datos del almacén
    */
   function handleInputChange(productId: string, value: string, currentDataKey: string): void {
+    console.log("🚀 ~ handleInputChange ~ currentDataKey:", currentDataKey)
     const newWarehouseDataGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])];
 
     // Buscar el producto o lote correspondiente
@@ -289,7 +354,7 @@ export function ReportDaily() {
       setGramsBirdDay(updatedGrams);
     }
 
-    // Actualizar la Calcio dinámicamente
+    // Actualizar el Calcio dinámicamente
     if (currentDataKey === 'GrupoIdGranjaCalcio') {
       const totalQtyToAdd = newWarehouseDataGroup.reduce((acc, product) => {
         if (product.lotes && product.lotes.length > 0) {
@@ -306,11 +371,68 @@ export function ReportDaily() {
       setGramsCalcioDay(updatedGrams);
     }
 
+    console.log("🚀 ~ setWarehouseData ~ newWarehouseDataGroup:", newWarehouseDataGroup)
     // Actualizar el estado del almacén
     setWarehouseData((prevState) => ({
       ...prevState,
       [currentDataKey]: newWarehouseDataGroup,
     }));
+  }
+
+  const editReport = async () => {
+    console.log("🚀 ~ editReport ~ editando:")
+    const productos = [
+      ...(warehousesData?.GrupoIdGranjaAnimales ?? []),
+      ...(warehousesData?.GrupoIdGranjaMedicamentos ?? []),
+      ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
+      ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
+    ].flatMap(producto => {
+      const seccion = grupoNombreMap[producto.grupo] || "Otro";
+      if (producto.ManejaLotes === "S") {
+        return (producto.lotes ?? [])
+          .filter(lote => lote.qtyToAdd !== undefined)
+          .map(lote => ({
+            productoid: producto.productId,
+            cantidad: lote.qtyToAdd,
+            seccion,
+            numeroLote: lote.numeroLote,
+          }));
+      } else if (producto.qtyToAdd !== undefined) {
+        return [{
+          productoid: producto.productId,
+          cantidad: producto.qtyToAdd,
+          seccion,
+          numeroLote: null
+        }];
+      }
+
+      return [];
+    });
+
+    const requestData = {
+      fechaAnterior: format(oldDate, 'yyyy/MM/dd'),
+      nitStore: nitStore,
+      fecha: formattedDate,
+      warehouseId: selectedOption.id.trim(),
+      observaciones: formReportDaily.observation.trim()
+        ? formReportDaily.observation.trim()
+        : undefined,
+      produccion: {
+        Huevos: formReportDaily.eggs ? formReportDaily.eggs : undefined,
+        Picados: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
+        Forro: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Quebrado: formReportDaily.eggs_broken ? formReportDaily.eggs_broken : undefined,
+      },
+      productos,
+    };
+    console.log("🚀 ~ editReport ~ requestData:", requestData)
+
+    try {
+      const response = await productService.editDailyReport({ requestData });
+    } catch (error) {
+      
+    }
+
   }
 
 
@@ -328,7 +450,7 @@ export function ReportDaily() {
               label="Fecha:"
               selectedDate={selectedDate}
               onDateChange={(date) => {
-                setSelectedDate(date);
+                handleDateChange(date ?? new Date());
               }}
             />
           </div>
@@ -345,11 +467,11 @@ export function ReportDaily() {
                 </SelectItem>
               ))}
             </CustomSelect>
-            {(warehouseAge.weeks && warehouseAge.days) && (
+            {(warehouseAge.weeks !== undefined && warehouseAge.days !== undefined) ?
               <div className="mt-2 text-sm text-gray-700">
                 Edad: {warehouseAge.weeks} semanas {warehouseAge.days} días
-              </div>
-            )}
+              </div> : ''
+            }
           </div>
         </div>
 
@@ -443,9 +565,15 @@ export function ReportDaily() {
           />
         </div>
 
-        <Button type="submit" className="w-full flex items-center justify-center space-x-2 mb-10">
-          <span>Enviar</span>
-        </Button>
+        {edit ?
+          <Button type="button" onClick={() => editReport()} className="w-full flex items-center justify-center space-x-2 mb-10">
+            <span>Editar</span>
+          </Button>
+          : <Button type="submit" className="w-full flex items-center justify-center space-x-2 mb-10">
+            <span>Enviar</span>
+          </Button>
+        }
+
       </form>
     </div>
   );
