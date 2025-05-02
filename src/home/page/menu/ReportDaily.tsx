@@ -113,7 +113,7 @@ export function ReportDaily() {
     setEdit(false);
     try {
       setLoading(true);
-      const response = await productService.getProductsByWarehouse(date, almacenid);
+      const response = await productService.getProductsByWarehouse(date, almacenid, nitStore);
       const { data, status } = response as AxiosResponse;
       if (status === 200) {
         setLoading(false);
@@ -392,14 +392,14 @@ export function ReportDaily() {
         return (producto.lotes ?? [])
           .filter(lote => lote.qtyToAdd !== undefined)
           .map(lote => ({
-            productId: producto.productId,
+            productoid: producto.productId,
             cantidad: lote.qtyToAdd,
             seccion,
             numeroLote: lote.numeroLote,
           }));
       } else if (producto.qtyToAdd !== undefined) {
         return [{
-          productId: producto.productId,
+          productoid: producto.productId,
           cantidad: producto.qtyToAdd,
           seccion,
           numeroLote: null

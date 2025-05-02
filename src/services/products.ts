@@ -7,9 +7,9 @@ export class ProductsService {
     this.apiService = apiService;
   }
 
-  getProductsByWarehouse(date: string, warehouseId: string) {
+  getProductsByWarehouse(date: string, warehouseId: string, storedNit:string) {
     return this.apiService.get(
-      `/products/productgrouped/${date}/warehouse/${warehouseId}`
+      `/products/productgrouped/${date}/warehouse/${warehouseId}/storedNit/${storedNit}`
     );
   }
 
