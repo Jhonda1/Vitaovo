@@ -27,7 +27,6 @@ const initialFormReportDaily: FormReportDaily = {
 export function ReportDaily() {
   /* STATE */
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Estado para manejar la fecha seleccionada
-  const [oldDate, setOldDate] = useState<Date | null>(); // Estado para manejar la fecha anterior para el edit
   const [selectedOption, setSelectedOption] = useState<{ id: string, name: string }>({ id: "", name: "" });
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
@@ -125,7 +124,6 @@ export function ReportDaily() {
         setInitialized(false);
 
         if (data.edit) {
-          setOldDate(selectedDate);
           const production = {
             observation: data.production?.Observacion,
             eggs: data.production?.Huevos,
@@ -135,7 +133,6 @@ export function ReportDaily() {
           };
           setFormReportDaily(production);
         } else {
-          setOldDate(null);
           setFormReportDaily(initialFormReportDaily);
         }
 
@@ -150,6 +147,8 @@ export function ReportDaily() {
 
   // Función para manejar la selección de un almacén
   const handleAlmacenSelect = async (almacenid: string, name: string) => {
+    setGramsBirdDay(0);
+    setGramsCalcioDay(0);
     setSelectedOption({ id: almacenid, name: name });
     const dateToSend = selectedDate?.toISOString().split("T")[0];
     await getProductsByWarehouse(dateToSend, almacenid);
@@ -158,6 +157,8 @@ export function ReportDaily() {
   // Función para manejar el cambio de fecha
   const handleDateChange = async (date: Date) => {
     setSelectedDate(date);
+    setGramsBirdDay(0);
+    setGramsCalcioDay(0);
     const dateToSend = date.toISOString().split("T")[0];
     if (selectedOption.id) {
       await getProductsByWarehouse(dateToSend, selectedOption.id);
@@ -382,6 +383,7 @@ export function ReportDaily() {
 
   const editReport = async () => {
     console.log("🚀 ~ editReport ~ editando:")
+    setLoading(true);
     const productos = [
       ...(warehousesData?.GrupoIdGranjaAnimales ?? []),
       ...(warehousesData?.GrupoIdGranjaMedicamentos ?? []),
@@ -411,9 +413,8 @@ export function ReportDaily() {
     });
 
     const requestData = {
-      fechaAnterior: format(oldDate, 'yyyy/MM/dd'),
       nitStore: nitStore,
-      fecha: formattedDate,
+      fecha: selectedDate,
       warehouseId: selectedOption.id.trim(),
       observaciones: formReportDaily.observation.trim()
         ? formReportDaily.observation.trim()
@@ -430,8 +431,24 @@ export function ReportDaily() {
 
     try {
       const response = await productService.editDailyReport({ requestData });
-    } catch (error) {
       
+      const { status, data } = response as AxiosResponse;
+      if (status === 200) {
+        setLoading(false);
+        setEdit(false);
+        setWarehouseAge({});
+        setSelectedDate(new Date());
+        setSelectedOption({ id: "", name: "" });
+        setWarehouseData({});
+        setFormReportDaily(initialFormReportDaily);
+        setGramsBirdDay(0);
+        setGramsCalcioDay(0);
+        toast.success(data.message || "Registro editado correctamente.");
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error al enviar los datos:", error);
+      return;
     }
 
   }
