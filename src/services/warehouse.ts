@@ -6,8 +6,7 @@ export class WarehouseService {
     this.apiService = apiService;
   }
   getWarehouses() {
-    const nit = localStorage.getItem("nit");
-    return this.apiService.get(nit ? `/warehouses?nit=${nit}` : "/warehouses");
+    return this.apiService.get("/warehouses");
   }
 
 }

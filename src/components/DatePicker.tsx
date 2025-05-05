@@ -11,16 +11,18 @@ interface DatePickerProps {
   selectedDate?: Date;
   onDateChange: (date: Date | undefined) => void;
   label?: string; // Nuevo prop para el texto del label
-  mode?: "single" | "range"
 }
 
-export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange, label,mode='single' }) => {
+export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange, label }) => {
   const [date, setDate] = useState<Date | undefined>(selectedDate || new Date()); // Estado para manejar la fecha seleccionada
   const [isOpen, setIsOpen] = useState(false); // Estado para controlar el Popover
 
   const handleDateChange = (newDate: Date | undefined) => {
-    setDate(newDate);
-    onDateChange(newDate);
+    if (newDate && (!date || newDate.getTime() !== date.getTime())) {
+      // Solo actualiza si la fecha es diferente
+      setDate(newDate);
+      onDateChange(newDate);
+    }
     setIsOpen(false); // Cierra el Popover al seleccionar una fecha
   };
 
@@ -31,42 +33,20 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChan
         <PopoverTrigger asChild>
           <Button
             id="date"
-            variant="outline"
+            variant="secondary"
             className="w-full justify-start text-left font-normal"
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {mode =='single' &&( 
-              date  
-                ? format(date, "PPP", { locale: es }) 
-                :  <span>Selecciona una fecha</span>
-              )
-            }
-
-            {mode=='range' &&( 
-              date?.from ? (
-                date.to ? (
-                  <>
-                    {format(date.from, "yyyy-MM-dd")} -{" "}
-                    {format(date.to, "yyyy-MM-dd")}
-                  </>
-                ) : (
-                  format(date.from, "yyyy-MM-dd")
-                )
-              ) : (
-                <span>Selecciona una fecha</span>
-              ))
-            }
-            
+            {date ? format(date, "PPP", { locale: es }) : <span>Selecciona una fecha</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
-            initialFocus
-            mode={mode}
-            defaultMonth = {date?.from}
+            mode="single"
             selected={date}
             onSelect={handleDateChange}
-            numberOfMonth={mode == 'single' ? 1 : 2}
+            defaultMonth={date} // Abre el calendario en el mes de la fecha seleccionada
+            initialFocus
           />
         </PopoverContent>
       </Popover>

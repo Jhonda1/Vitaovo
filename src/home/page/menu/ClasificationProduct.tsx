@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Key, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
 import { useApi } from "@/hooks/useApiService";
 import { WarehouseService } from "@/services/warehouse";
 import { ProductsService } from "@/services/products";
-import { FormReportDaily, WarehouseData } from "@/types";
+import { FormReportDaily, Product, WarehouseData } from "@/types";
 import { AxiosResponse } from "axios";
 import { FormProduction } from "@/home/components/FormProduction";
 import { SelectItem } from "@/components/ui/select";
@@ -20,6 +20,7 @@ const initialFormReportDaily: FormReportDaily = {
   'eggs_lining': 0,
   'eggs_chopped': 0,
   'eggs_broken': 0,
+  'AlmacenId': ""
 }
 
 export function ClasificationProduct() {
@@ -238,13 +239,13 @@ export function ClasificationProduct() {
           <h6 className="text-2xl font-bold mb-4">Producción</h6>
           <div className="grid  gap-4">
             <div className="flex items-center space-x-2">
-              <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
-                <FormProduction id="Huevos" label="Huevos" value={Number(formReportDaily.eggs).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: e.target.value.replace(/[^0-9,]/g, "") }))} disabled={true} />
-                <FormProduction id="Picados" label="Picado" value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} disabled={true} />
-                <FormProduction id="Forro" label="Forro" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} disabled={true} />
-                <FormProduction id="Quebrados" label="Quebrado" value={Number(formReportDaily.eggs_broken).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} disabled={true} />
-                <FormProduction id="total" label={`Total`} value={Number(totalEggs).toLocaleString("es-CO")} disabled={true} />
-              </div>
+                <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
+                <FormProduction id="Huevos" label="Huevos" value={Number(formReportDaily.eggs).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs: e.target.value.replace(/[^0-9,]/g, "")}))} disabled={true}/>
+                <FormProduction id="Picados" label="Picado" value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
+                <FormProduction id="Forro" label="Sucio" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
+                <FormProduction id="Quebrados" label="Quebrado" value={Number(formReportDaily.eggs_broken).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_broken: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
+                <FormProduction id="total" label={`Total`} value={Number(totalEggs).toLocaleString("es-CO")} disabled={true}/>
+                </div>
             </div>
           </div>
         </div>
@@ -257,11 +258,11 @@ export function ClasificationProduct() {
         </div>
         {warehousesData?.GrupoIdGranjaProduccion && warehousesData.GrupoIdGranjaProduccion.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {warehousesData?.GrupoIdGranjaProduccion?.map((product: { productId: Key | null | undefined; name: string; }) => (
+            {warehousesData?.GrupoIdGranjaProduccion?.map((product: Product) => (
               <ProductClasification
                 key={product.productId}
                 productId={product.productId as string} // Aseguramos que productId sea una cadena
-                productName={product.name}
+                productName={product.name || ""}
                 quantity={quantities[product.productId as string] || 0} // Usamos productId como clave para cantidades
                 onQuantityChange={(productId, quantity) => handleQuantityChange(productId, quantity)} // Pasamos productId y cantidad
               />

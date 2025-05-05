@@ -23,7 +23,6 @@ import { AxiosResponse } from "axios";
 
 export const FormUser = () => {
   /* GLOBAL STATE */
-  const removeNitStore = useAuthStore((state) => state.removeNit);
   const onLoginUserStore = useAuthStore((state) => state.onLoginUser);
   const { apiService } = useApi();
   

@@ -22,6 +22,7 @@ const initialFormReportDaily: FormReportDaily = {
   'eggs_lining': 0,
   'eggs_chopped': 0,
   'eggs_broken': 0,
+  'AlmacenId': ""
 }
 
 export function ReportDaily() {
@@ -84,12 +85,12 @@ export function ReportDaily() {
   useEffect(() => {
     if (edit && warehousesData && !initialized) {
       Object.entries(warehousesData).forEach(([groupName, groupProducts]) => {
-        groupProducts.forEach(product => {
+        groupProducts.forEach((product: { ManejaLotes: string; lotes: ArrayLike<unknown> | { [s: string]: unknown; }; productId: string; cantidad: { toString: () => any; }; }) => {
           if (product.ManejaLotes === 'S') {
             Object.values(product.lotes).forEach(value => {
               handleInputChange(
-                `${product.productId}-${value.numeroLote}`,
-                value.cantidad?.toString() || "",
+                `${product.productId}-${(value as { numeroLote: string }).numeroLote}`,
+                (value as { cantidad?: number }).cantidad?.toString() || "",
                 groupName
               );
             });
@@ -125,6 +126,7 @@ export function ReportDaily() {
 
         if (data.edit) {
           const production = {
+            AlmacenId: selectedOption.id, // Ensure AlmacenId is included
             observation: data.production?.Observacion,
             eggs: data.production?.Huevos,
             eggs_lining: data.production?.Picados,
@@ -193,7 +195,7 @@ export function ReportDaily() {
       ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
     ].flatMap(producto => {
-      const seccion = grupoNombreMap[producto.grupo] || "Otro";
+      const seccion = grupoNombreMap[producto.grupo as keyof typeof grupoNombreMap] || "Otro";
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
           .filter(lote => lote.qtyToAdd !== undefined)
@@ -208,7 +210,7 @@ export function ReportDaily() {
           productId: producto.productId,
           cantidad: producto.qtyToAdd,
           seccion,
-          numeroLote: null
+          numeroLote: ""
         }];
       }
 
@@ -282,7 +284,6 @@ export function ReportDaily() {
    * @param currentDataKey Clave del objeto de datos del almacén
    */
   function handleInputChange(productId: string, value: string, currentDataKey: string): void {
-    console.log("🚀 ~ handleInputChange ~ currentDataKey:", currentDataKey)
     const newWarehouseDataGroup = [...(warehousesData[currentDataKey as keyof WarehouseData] as Product[])];
 
     // Buscar el producto o lote correspondiente
@@ -335,7 +336,7 @@ export function ReportDaily() {
         return acc + qty;
       }, 0);
 
-      const updatedMortality = birdsNumber - totalQtyToAdd;
+      const updatedMortality = (birdsNumber ?? 0) - totalQtyToAdd;
       setMortality(updatedMortality);
     }
 
@@ -373,7 +374,6 @@ export function ReportDaily() {
       setGramsCalcioDay(updatedGrams);
     }
 
-    console.log("🚀 ~ setWarehouseData ~ newWarehouseDataGroup:", newWarehouseDataGroup)
     // Actualizar el estado del almacén
     setWarehouseData((prevState) => ({
       ...prevState,
@@ -390,7 +390,7 @@ export function ReportDaily() {
       ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
     ].flatMap(producto => {
-      const seccion = grupoNombreMap[producto.grupo] || "Otro";
+      const seccion = grupoNombreMap[producto.grupo as string] || "Otro";
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
           .filter(lote => lote.qtyToAdd !== undefined)
@@ -405,7 +405,7 @@ export function ReportDaily() {
           productoid: producto.productId,
           cantidad: producto.qtyToAdd,
           seccion,
-          numeroLote: null
+          numeroLote: ""
         }];
       }
 
@@ -413,6 +413,7 @@ export function ReportDaily() {
     });
 
     const requestData = {
+      fechaAnterior: format(oldDate ?? new Date(), 'yyyy/MM/dd'),
       nitStore: nitStore,
       fecha: selectedDate,
       warehouseId: selectedOption.id.trim(),
@@ -427,7 +428,6 @@ export function ReportDaily() {
       },
       productos,
     };
-    console.log("🚀 ~ editReport ~ requestData:", requestData)
 
     try {
       const response = await productService.editDailyReport({ requestData });
@@ -530,7 +530,11 @@ export function ReportDaily() {
                 }
               />
               <div className="mt-2 text-lg text-gray-700">
-                {mortality <= 0 ? 'Gramos ave por día: ' + 0 : 'Gramos ave por día: ' + (gramsBirdDay / (mortality ? mortality : birdsNumber)).toFixed(2)}
+                {mortality !== null && mortality !== undefined && gramsBirdDay !== null && gramsBirdDay !== undefined && birdsNumber !== null && birdsNumber !== undefined
+                  ? (mortality <= 0
+                    ? 'Gramos ave por día: ' + 0
+                    : 'Gramos ave por día: ' + (gramsBirdDay / (mortality || birdsNumber)).toFixed(2))
+                  : 'Datos no disponibles'}
               </div>
             </div>
           ) : (
@@ -548,7 +552,7 @@ export function ReportDaily() {
                 }
               />
               <div className="mt-2 text-lg text-gray-700">
-                {mortality <= 0 ? 'Gramos ave por día: ' + 0 : 'Gramos ave por día: ' + (gramsCalcioDay / (mortality ? mortality : birdsNumber)).toFixed(2)}
+                {mortality && mortality <= 0 ? 'Gramos ave por día: ' + 0 : 'Gramos ave por día: ' + ((gramsCalcioDay ?? 0) / (mortality ?? birdsNumber ?? 1)).toFixed(2)}
               </div>
             </div>
           ) : (
@@ -563,7 +567,7 @@ export function ReportDaily() {
               <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
                 <FormProduction id="huevos" label="Huevos" value={Number(formReportDaily.eggs).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
                 <FormProduction id="picado" label="Picado" value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
-                <FormProduction id="forro" label="Forro" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
+                <FormProduction id="forro" label="Sucio" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
                 <FormProduction id="quebrado" label="Quebrado" value={Number(formReportDaily.eggs_broken).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
                 <FormProduction id="total" label={`Total`} value={Number(totalEggs).toLocaleString("es-CO")} disabled={true} />
               </div>
