@@ -6,6 +6,7 @@ import UserLogged from '../../assets/Logo.png';
 import LogoProsof from '../../assets/Favicon.png';
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSidebar } from "@/hooks/use-sidebar";
+import { useNavigate } from "react-router";
 export function NavUserSidebar(){
   const  userName =  useAuthStore((state)=> state.userName)
   const { isMobile } = useSidebar()
@@ -48,7 +49,8 @@ export function NavUserSidebar(){
             <DropdownMenuItem
               onClick={() => {
               useAuthStore.getState().onLogout(); // Assuming logout is a method in your auth store
-              window.location.href = "/"; // Redirect to the homepage
+                const navigate = useNavigate();
+                navigate("/"); // Redirect to the homepage
               }}
             >
               <LogOut />

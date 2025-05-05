@@ -18,8 +18,11 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChan
   const [isOpen, setIsOpen] = useState(false); // Estado para controlar el Popover
 
   const handleDateChange = (newDate: Date | undefined) => {
-    setDate(newDate);
-    onDateChange(newDate);
+    if (newDate && (!date || newDate.getTime() !== date.getTime())) {
+      // Solo actualiza si la fecha es diferente
+      setDate(newDate);
+      onDateChange(newDate);
+    }
     setIsOpen(false); // Cierra el Popover al seleccionar una fecha
   };
 
@@ -42,6 +45,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChan
             mode="single"
             selected={date}
             onSelect={handleDateChange}
+            defaultMonth={date} // Abre el calendario en el mes de la fecha seleccionada
             initialFocus
           />
         </PopoverContent>

@@ -6,7 +6,7 @@ import { Navigate } from "react-router";
 export const Login = () => {
   const nitStore  = useAuthStore(state => state.nit);
   const isLogin = useAuthStore((state) => state.isLogged);
-  if (isLogin) return <Navigate to="Home" />;
+  if (isLogin) return <Navigate to="home" />;
 
   return (
     <div className="w-full h-full flex items-center justify-center ">

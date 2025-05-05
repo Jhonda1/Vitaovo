@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { useState, useEffect, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
 import { DatePicker } from "@/components/DatePicker";
-import { CustomSelect } from "@/components/CustomSelect";
 import { useApi } from "@/hooks/useApiService";
 import { FormReportDaily, WarehouseData } from "@/types";
-import { SelectItem } from "@/components/ui/select";
 import { WarehouseService } from "@/services/warehouse";
 import { AxiosResponse } from "axios";
 import { ProductsService } from "@/services/products";
@@ -18,17 +17,15 @@ const initialFormReportDaily: FormReportDaily = {
   eggs_lining: 0,
   eggs_chopped: 0,
   eggs_broken: 0,
+  AlmacenId: ""
 };
 
 export function ListReport() {
   /* STATE */
   const [selectedStartDate, setSelectedStartDate] = useState<Date>(startOfMonth(new Date())); // Primer día del mes actual
   const [selectedEndDate, setSelectedEndDate] = useState<Date>(new Date()); // Fecha actual
-  const [selectedOption, setSelectedOption] = useState<{
-    id: string;
-    name: string;
-  }>({ id: "", name: "" });
-  const [options, setOptions] = useState<{ value: string; label: string }[]>([]);
+
+  const [, setOptions] = useState<{ value: string; label: string }[]>([]);
   const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
   const [loading, setLoading] = useState(false);
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily[]>([]);
@@ -77,7 +74,6 @@ export function ListReport() {
 
   // Función para manejar el cambio de fecha
   const handleDateChange = async (startDate: Date, endDate: Date) => {
-    console.log("fechas", { startDate, endDate });
     setSelectedStartDate(startDate);
     setSelectedEndDate(endDate);
 
@@ -104,7 +100,7 @@ export function ListReport() {
         setLoading(false);
         setWarehouseData(data.Production);
 
-        const dataParserProduction = data?.products.map((element) => ({
+        const dataParserProduction = data?.products.map((element: { Huevos: any; Forro: any; Picados: any; Quebrados: any; Observacion: any; AlmacenId: any; nombre: any; }) => ({
           ...initialFormReportDaily,
           eggs: element?.Huevos || initialFormReportDaily.eggs,
           eggs_lining: element?.Forro || initialFormReportDaily.eggs_lining,
@@ -125,12 +121,13 @@ export function ListReport() {
     }
   };
 
-  function sumTotalProduction(warehouseId) {
+  function sumTotalProduction(warehouseId: string) {
     let result = 0;
     const findData = formReportDaily?.find(
       (element) => element.AlmacenId == warehouseId
     );
     if (findData) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { AlmacenId, nombre, ...rest } = findData;
 
       result = Object.values(rest)
@@ -139,6 +136,7 @@ export function ListReport() {
     }
     return result;
   }
+  
   return (
     <div className="w-full p-4 overflow-scroll h-screen">
       <LoadingSpinner loading={loading} type="bounce" size={55} />
@@ -170,7 +168,7 @@ export function ListReport() {
 
         <div
           className={`w-auto overflow-x-auto flex ${
-            Object.entries(warehousesData)?.length > 0 ? "max-w-[50%]" : "w-full"
+            Object.entries(warehousesData)?.length > 0 ? "max-w-[100%]" : "w-full"
           }`}
         >
           {Object.entries(warehousesData)?.length > 0 ? (
@@ -180,12 +178,12 @@ export function ListReport() {
               key={index}
               >
                 <div className="min-w-[25rem]">
-                  <h2>{formReportDaily.find(element=>element.AlmacenId == index)?.nombre || ''}</h2>
+                  <h3>{formReportDaily.find(element=>element.AlmacenId == index)?.nombre || ''}</h3>
                   <h6 className="text-xl font-bold mb-4">Mortalidad</h6>
                   {element?.GrupoIdGranjaAnimales &&
                   element.GrupoIdGranjaAnimales.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
-                    {element.GrupoIdGranjaAnimales.map((product) => (
+                    {element.GrupoIdGranjaAnimales.map((product: { productId: Key | null | undefined; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; qtyToAdd: any; }) => (
                     <div
                       key={product.productId}
                       className="flex items-center space-x-4"
@@ -215,7 +213,7 @@ export function ListReport() {
                   {element?.GrupoIdGranjaMedicamentos &&
                   element.GrupoIdGranjaMedicamentos.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
-                    {element.GrupoIdGranjaMedicamentos.map((product) => (
+                    {element.GrupoIdGranjaMedicamentos.map((product: { productId: Key | null | undefined; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; qtyToAdd: any; }) => (
                     <div
                       key={product.productId}
                       className="flex items-center space-x-4"
@@ -245,7 +243,7 @@ export function ListReport() {
                   {element?.GrupoIdGranjaAlimentos &&
                   element.GrupoIdGranjaAlimentos.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
-                    {element.GrupoIdGranjaAlimentos.map((product) => (
+                    {element.GrupoIdGranjaAlimentos.map((product: { productId: Key | null | undefined; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; qtyToAdd: any; }) => (
                     <div
                       key={product.productId}
                       className="flex items-center space-x-4"
@@ -275,7 +273,7 @@ export function ListReport() {
                   {element?.GrupoIdGranjaCalcio &&
                   element.GrupoIdGranjaCalcio.length > 0 ? (
                   <div className="grid grid-cols-1 gap-4">
-                    {element.GrupoIdGranjaCalcio.map((product) => (
+                    {element.GrupoIdGranjaCalcio.map((product: { productId: Key | null | undefined; name: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; qtyToAdd: any; }) => (
                     <div
                       key={product.productId}
                       className="flex items-center space-x-4"

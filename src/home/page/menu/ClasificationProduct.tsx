@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Key, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
 import { useApi } from "@/hooks/useApiService";
 import { WarehouseService } from "@/services/warehouse";
 import { ProductsService } from "@/services/products";
-import { FormReportDaily, WarehouseData } from "@/types";
+import { FormReportDaily, Product, WarehouseData } from "@/types";
 import { AxiosResponse } from "axios";
 import { FormProduction } from "@/home/components/FormProduction";
 import { SelectItem } from "@/components/ui/select";
@@ -20,6 +20,7 @@ const initialFormReportDaily: FormReportDaily = {
   'eggs_lining': 0,
   'eggs_chopped': 0,
   'eggs_broken': 0,
+  'AlmacenId': ""
 }
 
 export function ClasificationProduct() {
@@ -257,11 +258,11 @@ export function ClasificationProduct() {
         </div>
         {warehousesData?.GrupoIdGranjaProduccion && warehousesData.GrupoIdGranjaProduccion.length > 0 ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {warehousesData?.GrupoIdGranjaProduccion?.map((product: { productId: Key | null | undefined; name: string; }) => (
+            {warehousesData?.GrupoIdGranjaProduccion?.map((product: Product) => (
               <ProductClasification
                 key={product.productId}
                 productId={product.productId as string} // Aseguramos que productId sea una cadena
-                productName={product.name}
+                productName={product.name || ""}
                 quantity={quantities[product.productId as string] || 0} // Usamos productId como clave para cantidades
                 onQuantityChange={(productId, quantity) => handleQuantityChange(productId, quantity)} // Pasamos productId y cantidad
               />
