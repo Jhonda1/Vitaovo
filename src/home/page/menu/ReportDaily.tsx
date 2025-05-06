@@ -169,10 +169,18 @@ export function ReportDaily() {
 
   const getTotalInveActua = (array: any[]) => {
     return array.reduce((total, item) => {
-      const cantidad = parseInt(item.invenactua); // Asegúrate de que invenactua sea un número
-      return cantidad > 0 ? total + cantidad : total;
+      if (item.ManejaLotes === "S" && Array.isArray(item.lotes)) {
+        const lotesSum = item.lotes.reduce((acc, lote) => {
+          const cantidadLote = parseFloat(lote.invenActua || "0");
+          return acc + (cantidadLote > 0 ? cantidadLote : 0);
+        }, 0);
+        return total + lotesSum;
+      } else {
+        const cantidad = parseFloat(item.invenactua || "0");
+        return total + (cantidad > 0 ? cantidad : 0);
+      }
     }, 0);
-  }
+  };
 
   /**
    * * Función para manejar el envío del formulario
@@ -198,23 +206,21 @@ export function ReportDaily() {
       const seccion = grupoNombreMap[producto.grupo as keyof typeof grupoNombreMap] || "Otro";
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
-          .filter(lote => lote.qtyToAdd !== undefined)
+          .filter(lote => lote)
           .map(lote => ({
             productId: producto.productId,
-            cantidad: lote.qtyToAdd,
+            cantidad: lote.qtyToAdd || 0,
             seccion,
             numeroLote: lote.numeroLote,
           }));
-      } else if (producto.qtyToAdd !== undefined) {
+      } else {
         return [{
           productId: producto.productId,
-          cantidad: producto.qtyToAdd,
+          cantidad: producto.qtyToAdd || 0,
           seccion,
           numeroLote: ""
         }];
       }
-
-      return [];
     });
 
     const requestData = {
@@ -241,14 +247,14 @@ export function ReportDaily() {
     }
 
     if (
-      !requestData.produccion.Huevos ||
-      !requestData.produccion.Picados ||
-      !requestData.produccion.Forro ||
-      !requestData.produccion.Quebrado ||
+      !requestData.produccion.Huevos &&
+      !requestData.produccion.Picados &&
+      !requestData.produccion.Forro &&
+      !requestData.produccion.Quebrado &&
       requestData.productos.length === 0
     ) {
       setLoading(false);
-      toast.error("Debe ingresar todos los datos dato para enviar.");
+      toast.error("Debe ingresar almenos un dato para enviar.");
       return;
     }
 
@@ -382,7 +388,6 @@ export function ReportDaily() {
   }
 
   const editReport = async () => {
-    console.log("🚀 ~ editReport ~ editando:")
     setLoading(true);
     const productos = [
       ...(warehousesData?.GrupoIdGranjaAnimales ?? []),
@@ -413,7 +418,7 @@ export function ReportDaily() {
     });
 
     const requestData = {
-      fechaAnterior: format(oldDate ?? new Date(), 'yyyy/MM/dd'),
+      fechaAnterior: format(new Date(), 'yyyy/MM/dd'),
       nitStore: nitStore,
       fecha: selectedDate,
       warehouseId: selectedOption.id.trim(),
@@ -450,9 +455,8 @@ export function ReportDaily() {
       console.error("Error al enviar los datos:", error);
       return;
     }
-
+    
   }
-
 
   return (
     <div className="w-full p-4 overflow-scroll h-screen">
@@ -530,7 +534,7 @@ export function ReportDaily() {
                 }
               />
               <div className="mt-2 text-lg text-gray-700">
-                {mortality !== null && mortality !== undefined && gramsBirdDay !== null && gramsBirdDay !== undefined && birdsNumber !== null && birdsNumber !== undefined
+                {gramsBirdDay !== null && gramsBirdDay !== undefined && birdsNumber !== null && birdsNumber !== undefined
                   ? (mortality <= 0
                     ? 'Gramos ave por día: ' + 0
                     : 'Gramos ave por día: ' + (gramsBirdDay / (mortality || birdsNumber)).toFixed(2))
@@ -552,7 +556,11 @@ export function ReportDaily() {
                 }
               />
               <div className="mt-2 text-lg text-gray-700">
-                {mortality && mortality <= 0 ? 'Gramos ave por día: ' + 0 : 'Gramos ave por día: ' + ((gramsCalcioDay ?? 0) / (mortality ?? birdsNumber ?? 1)).toFixed(2)}
+                {gramsCalcioDay !== null && gramsCalcioDay !== undefined && birdsNumber !== null && birdsNumber !== undefined
+                  ? (mortality <= 0
+                    ? 'Gramos ave por día: ' + 0
+                    : 'Gramos ave por día: ' + (gramsCalcioDay / (mortality || birdsNumber)).toFixed(2))
+                  : 'Datos no disponibles'}
               </div>
             </div>
           ) : (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,6 +16,10 @@ interface DatePickerProps {
 export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChange, label }) => {
   const [date, setDate] = useState<Date | undefined>(selectedDate || new Date()); // Estado para manejar la fecha seleccionada
   const [isOpen, setIsOpen] = useState(false); // Estado para controlar el Popover
+
+  useEffect(() => {
+    setDate(selectedDate || new Date());
+  }, [selectedDate]);
 
   const handleDateChange = (newDate: Date | undefined) => {
     if (newDate && (!date || newDate.getTime() !== date.getTime())) {

@@ -30,7 +30,7 @@ interface Product {
 
 
 interface WarehouseData{
-  ProductionTotal: any;
+  ProductionTotal?: any;
   GrupoIdGranjaAnimales?: Product[] ;
   GrupoIdGranjaMedicamentos?: Product[];
   GrupoIdGranjaAlimentos?: Product[];
