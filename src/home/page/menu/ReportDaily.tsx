@@ -32,7 +32,7 @@ export function ReportDaily() {
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
   );
-  const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
+  const [warehousesData, setWarehouseData] = useState<WarehouseData>({} as WarehouseData); // Datos relacionados al almacén seleccionado
   const [warehouseAge, setWarehouseAge] = useState<WarehouseAge>({}); // Edad del lote seleccionado
   const [gramsBirdDay, setGramsBirdDay] = useState<number | null>(0); // valor total de alimento consumido en gramos
   const [gramsCalcioDay, setGramsCalcioDay] = useState<number | null>(0); // valor total de calcio consumido en gramos
@@ -109,7 +109,7 @@ export function ReportDaily() {
   }, [edit, warehousesData, initialized]);
 
 
-  const getProductsByWarehouse = async (date: any, almacenid: string) => {
+  const getProductsByWarehouse = async (date: string, almacenid: string) => {
     setEdit(false);
     try {
       setLoading(true);
@@ -153,7 +153,11 @@ export function ReportDaily() {
     setGramsCalcioDay(0);
     setSelectedOption({ id: almacenid, name: name });
     const dateToSend = selectedDate?.toISOString().split("T")[0];
-    await getProductsByWarehouse(dateToSend, almacenid);
+    if (dateToSend) {
+      await getProductsByWarehouse(dateToSend, almacenid);
+    } else {
+      console.error("dateToSend is undefined");
+    }
   };
 
   // Función para manejar el cambio de fecha
@@ -167,7 +171,7 @@ export function ReportDaily() {
     }
   };
 
-  const getTotalInveActua = (array: any[]) => {
+  const getTotalInveActua = (array: { invenactua: string }[]) => {
     return array.reduce((total, item) => {
       if (item.ManejaLotes === "S" && Array.isArray(item.lotes)) {
         const lotesSum = item.lotes.reduce((acc, lote) => {
@@ -268,7 +272,7 @@ export function ReportDaily() {
         setWarehouseAge({});
         setSelectedDate(new Date());
         setSelectedOption({ id: "", name: "" });
-        setWarehouseData({});
+        setWarehouseData({} as WarehouseData);
         setFormReportDaily(initialFormReportDaily);
         toast.success("Los datos se guardaron correctamente.");
       }
@@ -444,7 +448,7 @@ export function ReportDaily() {
         setWarehouseAge({});
         setSelectedDate(new Date());
         setSelectedOption({ id: "", name: "" });
-        setWarehouseData({});
+        setWarehouseData({} as WarehouseData);
         setFormReportDaily(initialFormReportDaily);
         setGramsBirdDay(0);
         setGramsCalcioDay(0);

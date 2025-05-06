@@ -27,7 +27,7 @@ export function ClasificationProduct() {
   /* STATE */
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedOption, setSelectedOption] = useState<{ id: string, name: string }>({ id: "", name: "" });
-  const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
+  const [warehousesData, setWarehouseData] = useState<WarehouseData | null>(null); // Datos relacionados al almacén seleccionado
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
   );
@@ -165,7 +165,7 @@ export function ClasificationProduct() {
         setLoading(false);
         setSelectedDate(new Date());
         setSelectedOption({ id: "", name: "" });
-        setWarehouseData({});
+        setWarehouseData(null);
         setFormReportDaily(initialFormReportDaily);
         setQuantities({});
         toast.success("Los datos se guardaron correctamente.");

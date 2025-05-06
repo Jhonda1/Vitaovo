@@ -48,6 +48,10 @@ const CheckListIcon  = (props: PropsIcons) => (
 const ReportListIcon = (props: PropsIcons) => (
   <Icon icon="mdi:clipboard-text-multiple" {...defaultProps} {...props} />
 );
+
+const ConfigurationGear = (props: PropsIcons) => (
+  <Icon icon="mdi:cog" {...defaultProps} {...props} />
+);
 export {
   UserLoginIcon,
   PasswordIcon,
@@ -58,5 +62,6 @@ export {
   StorageIcon,
   GradualStorageIcon,
   CheckListIcon,
-  ReportListIcon
+  ReportListIcon,
+  ConfigurationGear
 }

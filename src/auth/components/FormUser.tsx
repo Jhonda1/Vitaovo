@@ -45,6 +45,7 @@ export const FormUser = () => {
           navigate('/home');
         } 
       } catch (error) {
+        console.error('Error al validar el usuario:', error);
         setLoading(false);
       }
     } else {

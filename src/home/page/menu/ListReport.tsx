@@ -26,7 +26,7 @@ export function ListReport() {
   const [selectedEndDate, setSelectedEndDate] = useState<Date>(new Date()); // Fecha actual
 
   const [, setOptions] = useState<{ value: string; label: string }[]>([]);
-  const [warehousesData, setWarehouseData] = useState<WarehouseData>({}); // Datos relacionados al almacén seleccionado
+  const [warehousesData, setWarehouseData] = useState<WarehouseData>({} as WarehouseData); // Datos relacionados al almacén seleccionado
   const [loading, setLoading] = useState(false);
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily[]>([]);
 

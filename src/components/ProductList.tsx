@@ -112,14 +112,12 @@ export const ProductList: React.FC<ProductListProps> = ({ products, onInputChang
               placeholder="Cantidad"
               value={product.qtyToAdd !== undefined ? Number(product.qtyToAdd) : (product.cantidad ? Number(product.cantidad).toLocaleString("es-CO") : "")}
               onChange={(e) => {
-                console.log("🚀 ~ {products.flatMap ~ e.target.value:", e.target.value);
                 const rawValue = e.target.value;
                 if (rawValue.startsWith("0") && rawValue.length > 1 && !rawValue.startsWith("0.")) {
                   e.target.value = rawValue.substring(1); // Eliminar el cero inicial si no es un decimal
                 }
                 const decimalsAllowed = product.DecimalesCantidad || 0; // Obtener la cantidad de decimales permitidos
                 const regExp = new RegExp(`^\\d+(\\.\\d{0,${decimalsAllowed}})?$`);
-                console.log("🚀 ~ {products.flatMap ~ regExp:", decimalsAllowed,regExp);
                 if (!regExp.test(rawValue)) {
                 // Si no cumple con el formato o contiene una coma, eliminar la coma y el último carácter ingresado
                 const correctedValue = rawValue.substring(0, rawValue.length - 1);

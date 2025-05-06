@@ -13,6 +13,19 @@ const PrivateRoute = ({ component: Component }: { component: JSX.Element }) => {
   return isLogin ? Component : <Navigate to="/" />;
 };
 
+//  // Función para obtener el basename dinámicamente
+//  const getBasename = () => {
+//   // Obtén el pathname actual
+//   const path = window.location.pathname;
+
+//   // Si estás en la raíz, no necesitas basename
+//   if (path === "/") return "";
+
+//   // Detecta el subdirectorio base (si existe)
+//   const basePath = path.split("/").filter(Boolean)[0];
+//   return `/${basePath}`;
+// };
+
 export const AppRouter = () => {
   const RutaFront = '/' + import.meta.env.VITE_RUTA_FRONT;
   const { validateNit } = useValidateNit();

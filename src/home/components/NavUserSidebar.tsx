@@ -7,9 +7,30 @@ import LogoProsof from '../../assets/Favicon.png';
 import { useAuthStore } from "@/store/useAuthStore";
 import { useSidebar } from "@/hooks/use-sidebar";
 import { useNavigate } from "react-router";
+import { useState } from "react";
+import { ApiConfigDialog } from "@/components/ApiConfigDialog"; // Importa el componente ApiConfigDialog
+// import { ConfigurationGear } from "@/components/icon"
+
+
 export function NavUserSidebar(){
   const  userName =  useAuthStore((state)=> state.userName)
   const { isMobile } = useSidebar()
+  const [showConfigDialog, setShowConfigDialog] = useState(false); // Estado para mostrar el diálogo
+  const [apiUrl, setApiUrl] = useState<string>(localStorage.getItem("urlApi") || import.meta.env.VITE_URLAPI || ""); // URL inicial
+  const [contingencyUrl, setContingencyUrl] = useState<string>(""); // URL de contingencia
+  const [useContingency, setUseContingency] = useState<boolean>(false); // Check de contingencia
+  const navigate = useNavigate();
+
+  const handleSaveConfig = (newApiUrl: string, newContingencyUrl: string, newUseContingency: boolean) => {
+    setApiUrl(newApiUrl);
+    setContingencyUrl(newContingencyUrl);
+    setUseContingency(newUseContingency);
+
+    // Guardar en localStorage
+    const urlToSave = newUseContingency ? newContingencyUrl : newApiUrl;
+    localStorage.setItem("urlApi", urlToSave);
+  };
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -46,10 +67,15 @@ export function NavUserSidebar(){
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {/* <DropdownMenuItem
+              onClick={() => setShowConfigDialog(true)} // Abre el diálogo de configuración
+            >
+              <ConfigurationGear />
+              Configuración
+            </DropdownMenuItem> */}
             <DropdownMenuItem
               onClick={() => {
               useAuthStore.getState().onLogout(); // Assuming logout is a method in your auth store
-                const navigate = useNavigate();
                 navigate("/"); // Redirect to the homepage
               }}
             >
@@ -63,6 +89,15 @@ export function NavUserSidebar(){
             </span>
           </div>
         </DropdownMenu>
+        {/* Dialog de configuración */}
+        <ApiConfigDialog
+          open={showConfigDialog}
+          onClose={() => setShowConfigDialog(false)}
+          initialApiUrl={apiUrl}
+          initialContingencyUrl={contingencyUrl}
+          initialUseContingency={useContingency}
+          onSave={handleSaveConfig}
+        />
       </SidebarMenuItem>
     </SidebarMenu>
   )
