@@ -171,7 +171,10 @@ export function ReportDaily() {
     }
   };
 
-  const getTotalInveActua = (array: { invenactua: string }[]) => {
+  const getTotalInveActua = (array: {
+    lotes: unknown;
+    ManejaLotes: string; invenactua: string 
+}[]) => {
     return array.reduce((total, item) => {
       if (item.ManejaLotes === "S" && Array.isArray(item.lotes)) {
         const lotesSum = item.lotes.reduce((acc, lote) => {
@@ -539,7 +542,7 @@ export function ReportDaily() {
               />
               <div className="mt-2 text-lg text-gray-700">
                 {gramsBirdDay !== null && gramsBirdDay !== undefined && birdsNumber !== null && birdsNumber !== undefined
-                  ? (mortality <= 0
+                  ? ((mortality ?? 0) <= 0
                     ? 'Gramos ave por día: ' + 0
                     : 'Gramos ave por día: ' + (gramsBirdDay / (mortality || birdsNumber)).toFixed(2))
                   : 'Datos no disponibles'}
@@ -561,7 +564,7 @@ export function ReportDaily() {
               />
               <div className="mt-2 text-lg text-gray-700">
                 {gramsCalcioDay !== null && gramsCalcioDay !== undefined && birdsNumber !== null && birdsNumber !== undefined
-                  ? (mortality <= 0
+                  ? ((mortality ?? 0) <= 0
                     ? 'Gramos ave por día: ' + 0
                     : 'Gramos ave por día: ' + (gramsCalcioDay / (mortality || birdsNumber)).toFixed(2))
                   : 'Datos no disponibles'}

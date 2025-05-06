@@ -28,6 +28,7 @@ const PrivateRoute = ({ component: Component }: { component: JSX.Element }) => {
 
 export const AppRouter = () => {
   const RutaFront = '/' + import.meta.env.VITE_RUTA_FRONT;
+  console.log("RutaFront", RutaFront);
   const { validateNit } = useValidateNit();
   const [loading, setLoading] = useState(true);
 
