@@ -213,21 +213,23 @@ export function ReportDaily() {
       const seccion = grupoNombreMap[producto.grupo as keyof typeof grupoNombreMap] || "Otro";
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
-          .filter(lote => lote)
+          .filter(lote => lote.qtyToAdd !== undefined)
           .map(lote => ({
-            productId: producto.productId,
+            productoid: producto.productId,
             cantidad: lote.qtyToAdd || 0,
             seccion,
             numeroLote: lote.numeroLote,
           }));
-      } else {
+      } else if(producto.qtyToAdd !== undefined) {
         return [{
-          productId: producto.productId,
+          productoid: producto.productId,
           cantidad: producto.qtyToAdd || 0,
           seccion,
           numeroLote: ""
         }];
       }
+
+      return [];
     });
 
     const requestData = {
@@ -425,9 +427,8 @@ export function ReportDaily() {
     });
 
     const requestData = {
-      fechaAnterior: format(new Date(), 'yyyy/MM/dd'),
       nitStore: nitStore,
-      fecha: selectedDate,
+      fecha: formattedDate,
       warehouseId: selectedOption.id.trim(),
       observaciones: formReportDaily.observation.trim()
         ? formReportDaily.observation.trim()
