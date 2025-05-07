@@ -1,14 +1,12 @@
 import path from "path";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 
-export default defineConfig(({ mode }) => {
-  // Carga las variables de entorno según el modo (por ejemplo, 'development' o 'production')
-  const env = loadEnv(mode, process.cwd());
+export default defineConfig(() => {
 
   return {
-    base: env.VITE_RUTA_FRONT, // Usa la variable de entorno cargada
+    base:  './', // Usa la variable de entorno cargada
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

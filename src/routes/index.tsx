@@ -4,7 +4,9 @@ import { Home } from "@/home/page/Home";
 import { useAuthStore } from "@/store/useAuthStore";
 import { CircleCheck, CircleX } from "lucide-react";
 import { JSX, useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import {  Routes, Route, Navigate } from "react-router";
+import { HashRouter } from "react-router-dom";
+
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useValidateNit } from "@/hooks/useValidateNit";
 
@@ -13,22 +15,7 @@ const PrivateRoute = ({ component: Component }: { component: JSX.Element }) => {
   return isLogin ? Component : <Navigate to="/" />;
 };
 
-//  // Función para obtener el basename dinámicamente
-//  const getBasename = () => {
-//   // Obtén el pathname actual
-//   const path = window.location.pathname;
-
-//   // Si estás en la raíz, no necesitas basename
-//   if (path === "/") return "";
-
-//   // Detecta el subdirectorio base (si existe)
-//   const basePath = path.split("/").filter(Boolean)[0];
-//   return `/${basePath}`;
-// };
-
 export const AppRouter = () => {
-  const RutaFront = '/' + import.meta.env.VITE_RUTA_FRONT;
-  console.log("RutaFront", RutaFront);
   const { validateNit } = useValidateNit();
   const [loading, setLoading] = useState(true);
 
@@ -59,13 +46,13 @@ export const AppRouter = () => {
 
   return (
     <div className="w-full h-screen overflow-hidden">
-      <BrowserRouter basename={RutaFront}>
+      <HashRouter >
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="home" element={<PrivateRoute component={<Home />} />} />
           <Route path="*" element={<h1>Not found page que trist</h1>} />
         </Routes>
-      </BrowserRouter>
+      </HashRouter>
       <Toaster
         icons={{
           error: <CircleX color="red" />,

@@ -579,13 +579,58 @@ export function ReportDaily() {
           <h6 className="text-2xl font-bold mb-4">Producción</h6>
           <div className="grid  gap-4">
             <div className="flex items-center space-x-2">
-              <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
-                <FormProduction id="huevos" label="Huevos" value={Number(formReportDaily.eggs).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
-                <FormProduction id="picado" label="Picado" value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
-                <FormProduction id="forro" label="Sucio" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
-                <FormProduction id="quebrado" label="Quebrado" value={Number(formReportDaily.eggs_broken).toLocaleString("es-CO")} onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: Number(e.target.value.replace(/[^0-9,]/g, "")) }))} />
-                <FormProduction id="total" label={`Total`} value={Number(totalEggs).toLocaleString("es-CO")} disabled={true} />
-              </div>
+                <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
+                <FormProduction 
+                  id="huevos" 
+                  label="Huevos" 
+                  value={Number(formReportDaily.eggs).toLocaleString("es-CO")} 
+                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
+                  onKeyDown={(e) => {
+                  if (!/^[0-9]$/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
+                    e.preventDefault();
+                  }
+                  }}
+                />
+                <FormProduction 
+                  id="picado" 
+                  label="Picado" 
+                  value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} 
+                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
+                  onKeyDown={(e) => {
+                  if (!/^[0-9]$/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
+                    e.preventDefault();
+                  }
+                  }}
+                />
+                <FormProduction 
+                  id="forro" 
+                  label="Sucio" 
+                  value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} 
+                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
+                  onKeyDown={(e) => {
+                  if (!/^[0-9]$/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
+                    e.preventDefault();
+                  }
+                  }}
+                />
+                <FormProduction 
+                  id="quebrado" 
+                  label="Quebrado" 
+                  value={Number(formReportDaily.eggs_broken).toLocaleString("es-CO")} 
+                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_broken: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
+                  onKeyDown={(e) => {
+                  if (!/^[0-9]$/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
+                    e.preventDefault();
+                  }
+                  }}
+                />
+                <FormProduction 
+                  id="total" 
+                  label={`Total`} 
+                  value={Number(totalEggs).toLocaleString("es-CO")} 
+                  disabled={true} 
+                />
+                </div>
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ interface FormProductionProps {
   id: string;
   label: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   value: string;
   disabled?: boolean;
   vertical?: boolean; // Nueva propiedad para controlar el diseño
