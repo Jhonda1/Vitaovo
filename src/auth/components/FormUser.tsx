@@ -110,16 +110,18 @@ export const FormUser = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-            {!localStorage.getItem('nit') && (
             <Button
               className="w-2/5"
-              variant={"outline"}
+              onClick={() => {
+                localStorage.clear();
+                useAuthStore.getState().onLogout(); 
+                navigate("/"); 
+              }}
             >
               Regresar
             </Button>
-            )}
             <Button 
-              className={`w-${!localStorage.getItem('nit') ? '2/5' : 'full'}`} 
+              className="w-2/5"
               onClick={validateUser}
             >
             Acceder
