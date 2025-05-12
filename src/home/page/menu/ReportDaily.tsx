@@ -267,6 +267,12 @@ export function ReportDaily() {
       return;
     }
 
+    if (!warehousesData?.GrupoIdGranjaAnimales || warehousesData.GrupoIdGranjaAnimales.length === 0) {
+      setLoading(false);
+      toast.error("Debe configurar productos en la sección de Mortalidad.");
+      return;
+    }
+
     try {
       const response = await productService.inserProductInventari({ requestData });
       
