@@ -37,7 +37,6 @@ export const FormUser = () => {
       try {
         const response = await apiService.post("/login", { user: loginData.user, password: loginData.password, usuarios: true });
         const { data, status } = response as AxiosResponse;
-        console.log('Response:', data, status);
         if (status === 200) {
           const user = data.user;
           const token = data.token;

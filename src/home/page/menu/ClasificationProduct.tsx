@@ -109,7 +109,6 @@ export function ClasificationProduct() {
           observation: ProductProduction?.Observacion || initialFormReportDaily.observation,
         };
         setFormReportDaily(updatedFormReportDaily);
-        console.log("ProductProduction actualizado:", updatedFormReportDaily);
       }
     } catch (error) {
       setLoading(false);
@@ -156,7 +155,6 @@ export function ClasificationProduct() {
       productos: filteredProducts,
       modul: "Clasification",
     };
-    console.log("Datos enviados:", requestData);
 
     try {
       const response = await productService.inserProductInventari({ requestData });
@@ -194,7 +192,6 @@ export function ClasificationProduct() {
       return; // No actualices si se pasa
     }
 
-    console.log("Cantidad actualizada:", productName, quantity);
     setQuantities((prevQuantities) => ({
       ...prevQuantities,
       [productName]: quantity,
