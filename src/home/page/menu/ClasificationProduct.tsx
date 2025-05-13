@@ -95,6 +95,7 @@ export function ClasificationProduct() {
       setLoading(true);
       const response = await productService.getRegisteredProductsByDateAndWarehouse(`${dateToSend}`, `${almacenid}`);
       const { data, status } = response as AxiosResponse;
+      console.log("almacenid", data);
       if (status === 200) {
         setLoading(false);
         setWarehouseData(data.Production);
@@ -136,8 +137,8 @@ export function ClasificationProduct() {
 
     const filteredProducts = Object.entries(quantities)
       .filter(([_, quantity]) => quantity > 0)
-      .map(([productId, quantity]) => ({
-        productId,
+      .map(([productoid, quantity]) => ({
+        productoid,
         cantidad: quantity,
         seccion: 'Produccion'
       }));
