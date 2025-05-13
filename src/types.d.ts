@@ -7,6 +7,12 @@ interface FormReportDaily {
     eggs_broken: number;
     nombre?: string;
 }
+interface SeccionReporDaily {
+    Mortalidad: unknown;
+    Alimentos: unknown;
+    Medicamentos: unknown;
+    Calcio: unknown;
+}
 
 interface Product {
   grupo: unknown;
@@ -41,4 +47,4 @@ interface WarehouseAge{
   weeks?: number;
   days?: number;
 }
-export type { FormReportDaily,WarehouseData,Product,WarehouseAge };
+export type { FormReportDaily,SeccionReporDaily,WarehouseData,Product,WarehouseAge };

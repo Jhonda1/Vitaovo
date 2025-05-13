@@ -4,7 +4,7 @@ import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
 import { ProductList } from "@/components/ProductList";
 import { useApi } from "@/hooks/useApiService";
-import { FormReportDaily, Product, WarehouseData, WarehouseAge } from "@/types";
+import { FormReportDaily, Product, WarehouseData, WarehouseAge, SeccionReporDaily } from "@/types";
 import { FormProduction } from "@/home/components/FormProduction";
 import { SelectItem } from "@/components/ui/select";
 import { WarehouseService } from "@/services/warehouse";
@@ -25,6 +25,13 @@ const initialFormReportDaily: FormReportDaily = {
   'AlmacenId': ""
 }
 
+  const initialSeccion: SeccionReporDaily = {
+    "Mortalidad" : '',
+    "Alimentos": '',
+    "Medicamentos": '',
+    "Calcio": '',
+  };
+
 export function ReportDaily() {
   /* STATE */
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Estado para manejar la fecha seleccionada
@@ -40,6 +47,7 @@ export function ReportDaily() {
   const [birdsNumber, setBirdsNumber] = useState<number | null>(); // inventario de aves del lote seleccionado
   const [edit, setEdit] = useState<boolean>(false); // editar reporte diario
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
+  const [, setSection] = useState<SeccionReporDaily>(initialSeccion);
   const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
   const [loading, setLoading] = useState(false);
   const nitStore = useAuthStore(state => state.nit);
@@ -138,6 +146,11 @@ export function ReportDaily() {
           setFormReportDaily(initialFormReportDaily);
         }
 
+        setSection(data.montaje);
+        Object.entries(data.montaje).forEach(([key, value]) => {
+          initialSeccion[key as keyof SeccionReporDaily] = value;
+        });
+
         const birdsSum = getTotalInveActua(data.products.GrupoIdGranjaAnimales);
         setBirdsNumber(birdsSum);
       }
@@ -192,25 +205,16 @@ export function ReportDaily() {
   /**
    * * Función para manejar el envío del formulario
    */
-
-  const grupoNombreMap: Record<string, string> = {
-    "15001": "Mortalidad",
-    "15003": "Alimentos",
-    "15004": "Medicamentos",
-    "15005": "Calcio",
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     const productos = [
       ...(warehousesData?.GrupoIdGranjaAnimales ?? []),
       ...(warehousesData?.GrupoIdGranjaMedicamentos ?? []),
       ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
     ].flatMap(producto => {
-      const seccion = grupoNombreMap[producto.grupo as keyof typeof grupoNombreMap] || "Otro";
+      const seccion = Object.entries(initialSeccion).find(([, value]) => value === producto.grupo)?.[0];
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
           .filter(lote => lote.qtyToAdd !== undefined)
@@ -410,7 +414,7 @@ export function ReportDaily() {
       ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
     ].flatMap(producto => {
-      const seccion = grupoNombreMap[producto.grupo as string] || "Otro";
+      const seccion = Object.entries(initialSeccion).find(([key, value]) => value === producto.grupo)?.[0] ;
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
           .filter(lote => lote.qtyToAdd !== undefined)
