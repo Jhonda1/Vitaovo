@@ -414,7 +414,7 @@ export function ReportDaily() {
       ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
     ].flatMap(producto => {
-      const seccion = Object.entries(initialSeccion).find(([key, value]) => value === producto.grupo)?.[0] ;
+      const seccion = Object.entries(initialSeccion).find(([, value]) => value === producto.grupo)?.[0] ;
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
           .filter(lote => lote.qtyToAdd !== undefined)
