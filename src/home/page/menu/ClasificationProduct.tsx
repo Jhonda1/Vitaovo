@@ -13,6 +13,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { ProductClasification } from "@/components/ProductClasification";
+import { format } from "date-fns";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation': '',
@@ -31,10 +32,11 @@ export function ClasificationProduct() {
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
   );
+  const [edit, setEdit] = useState<boolean>(false); // editar reporte diario
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const [loading, setLoading] = useState(false);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
-
+  const [, setInitialized] = useState(false);
 
   /* HOOKS */
   const { apiService } = useApi();
@@ -95,10 +97,14 @@ export function ClasificationProduct() {
       setLoading(true);
       const response = await productService.getRegisteredProductsByDateAndWarehouse(`${dateToSend}`, `${almacenid}`);
       const { data, status } = response as AxiosResponse;
-      console.log("almacenid", data);
-      if (status === 200) {
+      setEdit(false);
+      setInitialized(false);
+      setQuantities({});
+      
+      if (status === 200) {       
         setLoading(false);
         setWarehouseData(data.Production);
+        setEdit(data.edit);
 
         const ProductProduction = data.products[0];
         const updatedFormReportDaily = {
@@ -110,6 +116,16 @@ export function ClasificationProduct() {
           observation: ProductProduction?.Observacion || initialFormReportDaily.observation,
         };
         setFormReportDaily(updatedFormReportDaily);
+
+        if (data.edit) {
+          setEdit(true);
+            const updatedQuantities = { ...quantities };
+            data.Production.GrupoIdGranjaProduccion.forEach((product: Product) => {
+              updatedQuantities[product.productId as string] = product.cantidad || 0; // Set the quantity for each product
+            });
+            setQuantities(updatedQuantities);            
+            setInitialized(true);
+        }
       }
     } catch (error) {
       setLoading(false);
@@ -155,6 +171,7 @@ export function ClasificationProduct() {
       warehouseId: selectedOption.id.trim(),
       productos: filteredProducts,
       modul: "Clasification",
+      edit: edit,
     };
 
     try {
@@ -271,7 +288,7 @@ export function ClasificationProduct() {
         )}
 
         <Button type="submit" className="w-full mb-10">
-          Enviar
+          {edit ? "Editar" : "Enviar"}
         </Button>
       </form>
     </div>
