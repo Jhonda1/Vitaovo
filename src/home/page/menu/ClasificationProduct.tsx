@@ -13,7 +13,6 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { ProductClasification } from "@/components/ProductClasification";
-import { format } from "date-fns";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation': '',
@@ -71,9 +70,6 @@ export function ClasificationProduct() {
   }, []);
 
   useEffect(() => {
-    if (selectedOption.id) {
-      console.log("almacenid actualizado:", selectedOption.id);
-    }
   }, [selectedOption.id]);
 
   // Función para manejar la selección de un almacén
@@ -184,6 +180,7 @@ export function ClasificationProduct() {
         setWarehouseData(null);
         setFormReportDaily(initialFormReportDaily);
         setQuantities({});
+        setEdit(false);
         toast.success("Los datos se guardaron correctamente.");
       }
 
@@ -194,6 +191,35 @@ export function ClasificationProduct() {
     }
 
   };
+
+  //funciona para anular el reporte diario
+  const anularReporte = async () => {
+
+    try {
+      setLoading(true);
+      const requestData = {
+        fecha: selectedDate.toISOString().split("T")[0],
+        warehouseId: selectedOption.id.trim(),
+        modul: "Clasification",
+      };
+      const response = await productService.anularProductInventari({requestData});
+      const { status, data } = response as AxiosResponse;
+      if (status === 200) {
+        setLoading(false);
+        setSelectedDate(new Date());
+        setSelectedOption({ id: "", name: "" });
+        setWarehouseData(null);
+        setFormReportDaily(initialFormReportDaily);
+        setQuantities({});
+        setEdit(false);
+        toast.success(data.message || "Reporte diario anulado correctamente.");
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error al anular el reporte diario:", error);
+      toast.error("Error al anular el reporte diario.");
+    }
+  }
 
   let totalEggs = Number(formReportDaily.eggs) + Number(formReportDaily.eggs_lining) + Number(formReportDaily.eggs_chopped) + Number(formReportDaily.eggs_broken);
   if (isNaN(totalEggs)) {
@@ -287,9 +313,25 @@ export function ClasificationProduct() {
           <p className="text-gray-500">No hay productos disponibles.</p>
         )}
 
-        <Button type="submit" className="w-full mb-10">
-          {edit ? "Editar" : "Enviar"}
-        </Button>
+        {edit ? (
+          <div className="flex gap-4 w-full mb-10">
+            <Button type="submit" className="flex-1">
+              Editar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="flex-1"
+              onClick={() => anularReporte()}
+            >
+              Anular
+            </Button>
+          </div>
+        ) : (
+          <Button type="submit" className="w-full mb-10">
+            Enviar
+          </Button>
+        )}
       </form>
     </div>
   );

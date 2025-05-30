@@ -46,4 +46,8 @@ export class ProductsService {
   sendProductClassificationData(data: object) {
     return this.apiService.post(`/products/sendProductClassificationData`, data);
   }
+
+  anularProductInventari(data: object) {
+    return this.apiService.post(`/products/anularProductInventari`, data);
+  }
 }

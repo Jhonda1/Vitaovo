@@ -44,6 +44,7 @@ export function ReportDaily() {
   const [gramsBirdDay, setGramsBirdDay] = useState<number | null>(0); // valor total de alimento consumido en gramos
   const [gramsCalcioDay, setGramsCalcioDay] = useState<number | null>(0); // valor total de calcio consumido en gramos
   const [mortality, setMortality] = useState<number | null>(); // total de aves - mortalidad
+  const [mounthin, setMounthin] = useState<string | null>(); // total de aves - mortalidad
   const [birdsNumber, setBirdsNumber] = useState<number | null>(); // inventario de aves del lote seleccionado
   const [edit, setEdit] = useState<boolean>(false); // editar reporte diario
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
@@ -128,6 +129,7 @@ export function ReportDaily() {
         setWarehouseData(data.products);
         setWarehouseAge(data.warehouseAge);
         setEdit(data.edit);
+        setMounthin(data.MounthinGrupoIdGranjaAnimales)
 
         // Este paso es clave: reinicia la bandera al cambiar de almacén
         setInitialized(false);
@@ -273,7 +275,11 @@ export function ReportDaily() {
 
     if (!warehousesData?.GrupoIdGranjaAnimales || warehousesData.GrupoIdGranjaAnimales.length === 0) {
       setLoading(false);
-      toast.error("Debe configurar productos en la sección de Mortalidad.");
+      if( mounthin != "" || mounthin != null){ 
+        toast.error("No existe inventario de aves para el lote seleccionado. Por favor verifique la configuración de inventario en Mortalidad.");
+      }else{
+        toast.error("Debe configurar productos en la sección de Mortalidad.");
+      }
       return;
     }
 
@@ -289,6 +295,7 @@ export function ReportDaily() {
         setSelectedOption({ id: "", name: "" });
         setWarehouseData({} as WarehouseData);
         setFormReportDaily(initialFormReportDaily);
+        setMounthin("");
         toast.success("Los datos se guardaron correctamente.");
       }
     } catch (error) {
@@ -466,6 +473,7 @@ export function ReportDaily() {
         setFormReportDaily(initialFormReportDaily);
         setGramsBirdDay(0);
         setGramsCalcioDay(0);
+        setMounthin("");
         toast.success(data.message || "Registro editado correctamente.");
       }
     } catch (error) {
