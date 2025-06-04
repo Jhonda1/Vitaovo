@@ -187,7 +187,6 @@ export function ClasificationProduct() {
     } catch (error) {
       setLoading(false);
       console.error("Error al enviar los datos:", error);
-      toast.error("Error al guardar los datos.");
     }
 
   };
@@ -217,7 +216,6 @@ export function ClasificationProduct() {
     } catch (error) {
       setLoading(false);
       console.error("Error al anular el reporte diario:", error);
-      toast.error("Error al anular el reporte diario.");
     }
   }
 
