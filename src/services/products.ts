@@ -43,6 +43,10 @@ export class ProductsService {
     );
   }
 
+  getReportByDateAndWarehouseDetail(dataSend: object) {
+    return this.apiService.post(`/products/ReportDetail`,dataSend );
+  }
+
   sendProductClassificationData(data: object) {
     return this.apiService.post(`/products/sendProductClassificationData`, data);
   }

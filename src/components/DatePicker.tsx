@@ -51,6 +51,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChan
             onSelect={handleDateChange}
             defaultMonth={date} // Abre el calendario en el mes de la fecha seleccionada
             initialFocus
+            locale={es} 
           />
         </PopoverContent>
       </Popover>

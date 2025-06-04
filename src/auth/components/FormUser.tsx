@@ -110,6 +110,7 @@ export const FormUser = () => {
         </CardContent>
         <CardFooter className="flex justify-between">
             <Button
+              variant="outline"
               className="w-2/5"
               onClick={() => {
                 localStorage.clear();

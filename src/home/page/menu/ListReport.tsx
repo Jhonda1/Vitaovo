@@ -100,7 +100,17 @@ export function ListReport() {
         setLoading(false);
         setWarehouseData(data.Production);
 
-        const dataParserProduction = data?.products.map((element: { Huevos: any; Forro: any; Picados: any; Quebrados: any; Observacion: any; AlmacenId: any; nombre: any; }) => ({
+        interface ProductElement {
+          Huevos: number;
+          Forro: number;
+          Picados: number;
+          Quebrados: number;
+          Observacion: string;
+          AlmacenId: string;
+          nombre: string;
+        }
+
+        const dataParserProduction = data?.products.map((element: ProductElement) => ({
           ...initialFormReportDaily,
           eggs: element?.Huevos || initialFormReportDaily.eggs,
           eggs_lining: element?.Forro || initialFormReportDaily.eggs_lining,

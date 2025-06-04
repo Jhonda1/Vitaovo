@@ -4,6 +4,7 @@ import { ReportDaily } from "../home/page/menu/ReportDaily"
 import { ClasificationProduct } from "../home/page/menu/ClasificationProduct"
 import { useSidebarMenuStore } from "@/store/useSidebarMenuStore"
 import { ListReport } from "@/home/page/menu/ListReport"
+import { ReportDetail } from "../home/page/menu/ReportDetail"
 
 const sideBarMenu = {
   [itemsSidebarMenu.ReportDaily]: {
@@ -19,6 +20,11 @@ const sideBarMenu = {
   [itemsSidebarMenu.ListReport]: {
     Component: ListReport,
     title: 'Listado reportes',
+    Icon: ReportListIcon
+  },
+  [itemsSidebarMenu.ReportDetail]: {
+    Component: ReportDetail,
+    title: 'Reporte detallado',
     Icon: ReportListIcon
   }
 }
