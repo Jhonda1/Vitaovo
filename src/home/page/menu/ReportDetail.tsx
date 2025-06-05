@@ -14,6 +14,7 @@ import 'datatables.net-buttons/js/buttons.html5.js';
 import 'datatables.net-buttons/js/buttons.print.js';
 // Update the import path below if the actual file location is different
 import { MultiSelect } from "@/components/MultipleSelect"
+import { Button } from "@/components/ui/button";
 
 interface WarehouseOption {
   value: string;
@@ -287,14 +288,12 @@ export function ReportDetail() {
             />
           </div>
           <div className="mt-4">
-            <button
-              type="button"
-              className="bg-blue-400 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            <Button
               onClick={() => filterProducts(selectedStartDate, selectedEndDate, selected)}
               disabled={loading}
             >
               Filtrar
-            </button>
+            </Button>
           </div>
         </div>
 
