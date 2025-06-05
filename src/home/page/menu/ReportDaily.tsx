@@ -158,6 +158,15 @@ export function ReportDaily() {
       }
     } catch (error) {
       setLoading(false);
+      setEdit(false);
+      setWarehouseAge({});
+      setFormReportDaily(initialFormReportDaily);
+      setGramsBirdDay(0);
+      setGramsCalcioDay(0);
+      setMounthin("");
+      setMortality(null);
+      setBirdsNumber(null);
+      setInitialized(false);
       console.error("Error al obtener los datos del almacén:", error);
     }
   };

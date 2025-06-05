@@ -41,7 +41,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChan
             className="w-full justify-start text-left font-normal"
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "PPP", { locale: es }) : <span>Selecciona una fecha</span>}
+            {date ? format(date, "yyyy-MM-dd") : <span>Selecciona una fecha</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
@@ -50,7 +50,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateChan
             selected={date}
             onSelect={handleDateChange}
             defaultMonth={date} // Abre el calendario en el mes de la fecha seleccionada
-            initialFocus
             locale={es} 
           />
         </PopoverContent>
