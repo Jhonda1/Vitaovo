@@ -127,6 +127,10 @@ export function ClasificationProduct() {
     } catch (error) {
       setLoading(false);
       console.error("Error al obtener los datos del almacén fetchWarehouseData:");
+      setWarehouseData(null);
+      setFormReportDaily(initialFormReportDaily);
+      setQuantities({});
+      setEdit(false);
       throw error; // Lanza el error para que pueda ser capturado por el bloque catch
     }
   };
