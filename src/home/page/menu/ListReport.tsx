@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { FormProduction } from "@/home/components/FormProduction";
 import { format, startOfMonth } from "date-fns"; // Importamos `startOfMonth`
+import { th } from "motion/react-client";
 
 const initialFormReportDaily: FormReportDaily = {
   observation: "",
@@ -55,8 +56,9 @@ export function ListReport() {
         }
       } catch (error) {
         setLoading(false);
-        console.error("Error al obtener los almacenes:", error);
+        console.error("Error al obtener los almacenes fetchAlmacenes:");
         toast.error("Error al obtener los almacenes.");
+        throw error; // Lanza el error para que pueda ser capturado por el bloque catch
       }
     };
 
@@ -126,8 +128,9 @@ export function ListReport() {
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al obtener los datos del almacén:", error);
+      console.error("Error al obtener los datos del almacén fetchWarehouseData:");
       toast.error("Error al obtener los datos del almacén.");
+      throw error; // Lanza el error para que pueda ser capturado por el bloque catch
     }
   };
 

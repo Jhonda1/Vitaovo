@@ -13,6 +13,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { ProductClasification } from "@/components/ProductClasification";
+import { th, tr } from "motion/react-client";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation': '',
@@ -62,7 +63,8 @@ export function ClasificationProduct() {
         }
       } catch (error) {
         setLoading(false);
-        console.error("Error al obtener los almacenes:", error);
+        console.error("Error al obtener los almacenes fetchAlmacenes:");
+        throw error; // Lanza el error para que pueda ser capturado por el bloque catch
       }
     };
 
@@ -125,7 +127,8 @@ export function ClasificationProduct() {
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al obtener los datos del almacén:", error);
+      console.error("Error al obtener los datos del almacén fetchWarehouseData:");
+      throw error; // Lanza el error para que pueda ser capturado por el bloque catch
     }
   };
 
@@ -186,7 +189,8 @@ export function ClasificationProduct() {
 
     } catch (error) {
       setLoading(false);
-      console.error("Error al enviar los datos:", error);
+      console.error("Error al enviar los datos handleSubmit:");
+      throw error; // Lanza el error para que pueda ser capturado por el bloque catch
     }
 
   };
@@ -215,7 +219,8 @@ export function ClasificationProduct() {
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al anular el reporte diario:", error);
+      console.error("Error al anular el reporte diario anularReporte:");
+      throw error; // Lanza el error para que pueda ser capturado por el bloque catch
     }
   }
 

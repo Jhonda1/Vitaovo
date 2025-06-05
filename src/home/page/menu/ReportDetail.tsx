@@ -198,7 +198,6 @@ export function ReportDetail() {
         setLoading(true);
         const response = await warehouseService.getWarehouses();
         const { data, status } = response as AxiosResponse;
-        console.log("Almacenes:", data);
         if (status === 200) {
           const almacenes: WarehouseOption[] = data.warehouses.map(
             (almacen: { id: string; name: string }) => ({
@@ -211,8 +210,9 @@ export function ReportDetail() {
         }
       } catch (error) {
         setLoading(false);
-        console.error("Error al obtener los almacenes:", error);
+        console.error("Error al obtener los almacenes fetchAlmacenes:");
         toast.error("Error al obtener los almacenes.");
+        throw error; // Re-lanzar el error para manejarlo en el componente
       }
     };
 
@@ -247,8 +247,9 @@ export function ReportDetail() {
       setLoading(false);
     } catch (error) {
       setLoading(false);
-      console.error("Error al filtrar productos:", error);
+      console.error("Error al filtrar productos filterProducts:");
       toast.error("Error al filtrar productos.");
+      throw error; // Re-lanzar el error para manejarlo en el componente
     }
   }
   

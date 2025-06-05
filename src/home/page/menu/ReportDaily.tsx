@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuthStore } from "@/store/useAuthStore";
+import { th } from "motion/react-client";
 
 
 const initialFormReportDaily: FormReportDaily = {
@@ -77,7 +78,7 @@ export function ReportDaily() {
         }
       } catch (error) {
         setLoading(false);
-        console.error("Error al obtener los almacenes:", error);
+        console.error("Error al obtener los almacenes | fetchAlmacenes:");
         const errorMessage = error instanceof Error ? error.message : "Error desconocido";
         toast.error(errorMessage, { id: "fetchAlmacenesError" });
       }
@@ -167,7 +168,8 @@ export function ReportDaily() {
       setMortality(null);
       setBirdsNumber(null);
       setInitialized(false);
-      console.error("Error al obtener los datos del almacén:", error);
+      console.error("Error al obtener los datos del almacén ReportDaily | getProductsByWarehouse:");
+      throw error; // Re-throw the error to be caught by the calling function
     }
   };
 
@@ -309,8 +311,9 @@ export function ReportDaily() {
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al enviar los datos:", error);
+      console.error("Error al enviar los datos  | handleSubmit:");
       return;
+      throw error; // Re-throw the error to be caught by the calling function
     }
   };
 
@@ -487,8 +490,9 @@ export function ReportDaily() {
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al enviar los datos:", error);
+      console.error("Error al enviar los datos | editReport:");
       return;
+      throw error; // Re-throw the error to be caught by the calling function
     }
     
   }
