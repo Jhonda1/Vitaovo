@@ -13,7 +13,6 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useAuthStore } from "@/store/useAuthStore";
 import { toast } from "sonner";
 import { ProductClasification } from "@/components/ProductClasification";
-import { th, tr } from "motion/react-client";
 
 const initialFormReportDaily: FormReportDaily = {
   'observation': '',

@@ -55,7 +55,6 @@ export function createAxiosInstance(URL_API: string): AxiosInstance {
       return response
     },
     async (error) => {
-      console.log(error)
       console.log('Error de respuesta:', error?.response?.data)
       console.log('statusCode:', error?.response?.status)
 

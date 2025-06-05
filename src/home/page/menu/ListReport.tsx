@@ -10,7 +10,6 @@ import { toast } from "sonner";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { FormProduction } from "@/home/components/FormProduction";
 import { format, startOfMonth } from "date-fns"; // Importamos `startOfMonth`
-import { th } from "motion/react-client";
 
 const initialFormReportDaily: FormReportDaily = {
   observation: "",
