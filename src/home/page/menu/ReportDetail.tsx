@@ -15,6 +15,8 @@ import 'datatables.net-buttons/js/buttons.print.js';
 // Update the import path below if the actual file location is different
 import { MultiSelect } from "@/components/MultipleSelect"
 import { Button } from "@/components/ui/button";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 interface WarehouseOption {
   value: string;
@@ -253,6 +255,42 @@ export function ReportDetail() {
       throw error; // Re-lanzar el error para manejarlo en el componente
     }
   }
+
+  // Función para exportar a Excel
+  const exportToExcel = () => {
+    // Prepara los datos planos para exportar
+    const exportData = tableData.map((row: any) => {
+      // Aplana los insumos y producción para que sean legibles en Excel
+      const insumos = INSUMOS_KEYS.reduce((acc, key) => {
+        acc[key] = (row.Insumos?.[key] ?? [])
+          .map((insumo: any) => `${insumo.nombre}: ${insumo.cantidad}`)
+          .join(", ");
+        return acc;
+      }, {} as Record<string, string>);
+
+      const produccion = (row.Produccion ?? [])
+        .map((prod: any) => `${prod.nombre}: ${prod.cantidad}`)
+        .join(", ");
+
+      return {
+        Lote: row.AlmacenId,
+        Fecha: row.fecha,
+        Usuario: row.usuario,
+        "Fecha de Registro": row.fecharegistro,
+        ...insumos,
+        Producción: produccion,
+        Observación: row.observacion,
+      };
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Reporte");
+
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, `reporte_detallado_${new Date().toISOString().slice(0,10)}.xlsx`);
+  };
   
   return (
     <div className="w-full p-4 overflow-scroll h-screen">
@@ -287,12 +325,21 @@ export function ReportDetail() {
               onChange={setSelected}
             />
           </div>
-          <div className="mt-4">
+          <div className="mt-4 space-between flex">
             <Button
               onClick={() => filterProducts(selectedStartDate, selectedEndDate, selected)}
               disabled={loading}
             >
               Filtrar
+            </Button>
+            <Button
+            className="ml-2"
+              onClick={exportToExcel}
+              disabled={loading || tableData.length === 0}
+              type="button"
+              variant="outline"
+            >
+              Exportar
             </Button>
           </div>
         </div>

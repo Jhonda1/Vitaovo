@@ -17,13 +17,24 @@ interface MultiSelectProps {
 }
 
 export function MultiSelect({ options, selected, onChange }: MultiSelectProps) {
+  const allSelected = options.length > 0 && selected.length === options.length;
+  const isIndeterminate = selected.length > 0 && !allSelected;
+
   const toggleOption = (value: string) => {
     if (selected.includes(value)) {
-      onChange(selected.filter((item) => item !== value))
+      onChange(selected.filter((item) => item !== value));
     } else {
-      onChange([...selected, value])
+      onChange([...selected, value]);
     }
-  }
+  };
+
+  const toggleAll = () => {
+    if (allSelected) {
+      onChange([]);
+    } else {
+      onChange(options.map((opt) => opt.value));
+    }
+  };
 
   return (
     <Popover>
@@ -44,6 +55,21 @@ export function MultiSelect({ options, selected, onChange }: MultiSelectProps) {
         <Command>
           <CommandInput placeholder="Buscar..." />
           <CommandList>
+            {/* Opción Todos */}
+            <CommandItem onSelect={toggleAll}>
+              <Checkbox
+                checked={allSelected}
+                className="mr-2"
+                ref={el => {
+                  if (el) {
+                    (el as HTMLInputElement).indeterminate = isIndeterminate;
+                  }
+                }}
+              />
+              Todos
+              {allSelected && <Check className="ml-auto h-4 w-4 text-primary" />}
+            </CommandItem>
+            {/* Opciones individuales */}
             {options.map((option) => (
               <CommandItem key={option.value} onSelect={() => toggleOption(option.value)}>
                 <Checkbox
@@ -58,5 +84,5 @@ export function MultiSelect({ options, selected, onChange }: MultiSelectProps) {
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
