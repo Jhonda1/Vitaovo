@@ -139,8 +139,8 @@ export function ReportDaily() {
             AlmacenId: selectedOption.id, // Ensure AlmacenId is included
             observation: data.production?.Observacion,
             eggs: data.production?.Huevos,
-            eggs_lining: data.production?.Picados,
-            eggs_chopped: data.production?.Forro,
+            eggs_chopped: data.production?.Picados,
+            eggs_lining: data.production?.Forro,
             eggs_broken: data.production?.Quebrados,
           };
           setFormReportDaily(production);
@@ -258,8 +258,8 @@ export function ReportDaily() {
       modul: "Report",
       produccion: {
         Huevos: formReportDaily.eggs ? formReportDaily.eggs : undefined,
-        Picados: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
-        Forro: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Picados: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Forro: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
         Quebrado: formReportDaily.eggs_broken ? formReportDaily.eggs_broken : undefined,
       },
       productos,
@@ -463,8 +463,8 @@ export function ReportDaily() {
         : undefined,
       produccion: {
         Huevos: formReportDaily.eggs ? formReportDaily.eggs : undefined,
-        Picados: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
-        Forro: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Picados: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Forro: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
         Quebrado: formReportDaily.eggs_broken ? formReportDaily.eggs_broken : undefined,
       },
       productos,
@@ -624,9 +624,9 @@ export function ReportDaily() {
                 />
                 <FormProduction 
                   id="picado" 
-                  label="Picado" 
-                  value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} 
-                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
+                  label="Picado"
+                  value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} 
+                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
                   onKeyDown={(e) => {
                   if (!/^[0-9]$/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
                     e.preventDefault();
@@ -636,8 +636,8 @@ export function ReportDaily() {
                 <FormProduction 
                   id="forro" 
                   label="Sucio" 
-                  value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} 
-                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
+                  value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} 
+                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
                   onKeyDown={(e) => {
                   if (!/^[0-9]$/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
                     e.preventDefault();

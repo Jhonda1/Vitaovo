@@ -212,12 +212,12 @@ export function ListReport() {
                         value={Number(
                         formReportDaily.find(
                           (element) => element.AlmacenId == index
-                        )?.eggs_lining
+                        )?.eggs_chopped
                         ).toLocaleString("es-CO")}
                         onChange={(e) =>
                         setFormReportDaily((prevState) => ({
                           ...prevState,
-                          eggs_lining: Number(
+                          eggs_chopped: Number(
                           e.target.value.replace(/[^0-9,]/g, "")
                           ),
                         }))}
@@ -230,12 +230,12 @@ export function ListReport() {
                         value={Number(
                         formReportDaily.find(
                           (element) => element.AlmacenId == index
-                        )?.eggs_chopped
+                        )?.eggs_lining
                         ).toLocaleString("es-CO")}
                         onChange={(e) =>
                         setFormReportDaily((prevState) => ({
                           ...prevState,
-                          eggs_chopped: Number(
+                          eggs_lining: Number(
                           e.target.value.replace(/[^0-9,]/g, "")
                           ),
                         }))}
