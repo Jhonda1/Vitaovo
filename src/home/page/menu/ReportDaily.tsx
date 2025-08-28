@@ -137,11 +137,11 @@ export function ReportDaily() {
         if (data.edit) {
           const production = {
             AlmacenId: selectedOption.id, // Ensure AlmacenId is included
-            observation: data.production?.Observacion,
-            eggs: data.production?.Huevos,
-            eggs_chopped: data.production?.Picados,
-            eggs_lining: data.production?.Forro,
-            eggs_broken: data.production?.Quebrados,
+            observation: data.production?.Observacion || '',
+            eggs: data.production?.Huevos || 0,
+            eggs_chopped: data.production?.Picados || 0,
+            eggs_lining: data.production?.Forro || 0,
+            eggs_broken: data.production?.Quebrados || 0,
           };
           setFormReportDaily(production);
         } else {
