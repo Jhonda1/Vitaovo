@@ -4,7 +4,7 @@ import { DatePicker } from "@/components/DatePicker";
 import { CustomSelect } from "@/components/CustomSelect";
 import { ProductList } from "@/components/ProductList";
 import { useApi } from "@/hooks/useApiService";
-import { FormReportDaily, Product, WarehouseData, WarehouseAge } from "@/types";
+import { FormReportDaily, Product, WarehouseData, WarehouseAge, SeccionReporDaily } from "@/types";
 import { FormProduction } from "@/home/components/FormProduction";
 import { SelectItem } from "@/components/ui/select";
 import { WarehouseService } from "@/services/warehouse";
@@ -25,6 +25,13 @@ const initialFormReportDaily: FormReportDaily = {
   'AlmacenId': ""
 }
 
+  const initialSeccion: SeccionReporDaily = {
+    "Mortalidad" : '',
+    "Alimentos": '',
+    "Medicamentos": '',
+    "Calcio": '',
+  };
+
 export function ReportDaily() {
   /* STATE */
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date()); // Estado para manejar la fecha seleccionada
@@ -37,9 +44,11 @@ export function ReportDaily() {
   const [gramsBirdDay, setGramsBirdDay] = useState<number | null>(0); // valor total de alimento consumido en gramos
   const [gramsCalcioDay, setGramsCalcioDay] = useState<number | null>(0); // valor total de calcio consumido en gramos
   const [mortality, setMortality] = useState<number | null>(); // total de aves - mortalidad
+  const [mounthin, setMounthin] = useState<string | null>(); // total de aves - mortalidad
   const [birdsNumber, setBirdsNumber] = useState<number | null>(); // inventario de aves del lote seleccionado
   const [edit, setEdit] = useState<boolean>(false); // editar reporte diario
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
+  const [, setSection] = useState<SeccionReporDaily>(initialSeccion);
   const formattedDate = selectedDate ? format(selectedDate, "yyyy/MM/dd") : undefined;
   const [loading, setLoading] = useState(false);
   const nitStore = useAuthStore(state => state.nit);
@@ -68,7 +77,7 @@ export function ReportDaily() {
         }
       } catch (error) {
         setLoading(false);
-        console.error("Error al obtener los almacenes:", error);
+        console.error("Error al obtener los almacenes | fetchAlmacenes:");
         const errorMessage = error instanceof Error ? error.message : "Error desconocido";
         toast.error(errorMessage, { id: "fetchAlmacenesError" });
       }
@@ -120,6 +129,7 @@ export function ReportDaily() {
         setWarehouseData(data.products);
         setWarehouseAge(data.warehouseAge);
         setEdit(data.edit);
+        setMounthin(data.MounthinGrupoIdGranjaAnimales)
 
         // Este paso es clave: reinicia la bandera al cambiar de almacén
         setInitialized(false);
@@ -127,23 +137,38 @@ export function ReportDaily() {
         if (data.edit) {
           const production = {
             AlmacenId: selectedOption.id, // Ensure AlmacenId is included
-            observation: data.production?.Observacion,
-            eggs: data.production?.Huevos,
-            eggs_lining: data.production?.Picados,
-            eggs_chopped: data.production?.Forro,
-            eggs_broken: data.production?.Quebrados,
+            observation: data.production?.Observacion || '',
+            eggs: data.production?.Huevos || 0,
+            eggs_chopped: data.production?.Picados || 0,
+            eggs_lining: data.production?.Forro || 0,
+            eggs_broken: data.production?.Quebrados || 0,
           };
           setFormReportDaily(production);
         } else {
           setFormReportDaily(initialFormReportDaily);
         }
 
+        setSection(data.montaje);
+        Object.entries(data.montaje).forEach(([key, value]) => {
+          initialSeccion[key as keyof SeccionReporDaily] = value;
+        });
+
         const birdsSum = getTotalInveActua(data.products.GrupoIdGranjaAnimales);
         setBirdsNumber(birdsSum);
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al obtener los datos del almacén:", error);
+      setEdit(false);
+      setWarehouseAge({});
+      setFormReportDaily(initialFormReportDaily);
+      setGramsBirdDay(0);
+      setGramsCalcioDay(0);
+      setMounthin("");
+      setMortality(null);
+      setBirdsNumber(null);
+      setInitialized(false);
+      console.error("Error al obtener los datos del almacén ReportDaily | getProductsByWarehouse:");
+      throw error; // Re-throw the error to be caught by the calling function
     }
   };
 
@@ -192,25 +217,16 @@ export function ReportDaily() {
   /**
    * * Función para manejar el envío del formulario
    */
-
-  const grupoNombreMap: Record<string, string> = {
-    "15001": "Mortalidad",
-    "15003": "Alimentos",
-    "15004": "Medicamentos",
-    "15005": "Calcio",
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     const productos = [
       ...(warehousesData?.GrupoIdGranjaAnimales ?? []),
       ...(warehousesData?.GrupoIdGranjaMedicamentos ?? []),
       ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
     ].flatMap(producto => {
-      const seccion = grupoNombreMap[producto.grupo as keyof typeof grupoNombreMap] || "Otro";
+      const seccion = Object.entries(initialSeccion).find(([, value]) => value === producto.grupo)?.[0];
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
           .filter(lote => lote.qtyToAdd !== undefined)
@@ -242,8 +258,8 @@ export function ReportDaily() {
       modul: "Report",
       produccion: {
         Huevos: formReportDaily.eggs ? formReportDaily.eggs : undefined,
-        Picados: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
-        Forro: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Picados: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Forro: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
         Quebrado: formReportDaily.eggs_broken ? formReportDaily.eggs_broken : undefined,
       },
       productos,
@@ -269,7 +285,11 @@ export function ReportDaily() {
 
     if (!warehousesData?.GrupoIdGranjaAnimales || warehousesData.GrupoIdGranjaAnimales.length === 0) {
       setLoading(false);
-      toast.error("Debe configurar productos en la sección de Mortalidad.");
+      if( mounthin != "" || mounthin != null){ 
+        toast.error("No existe inventario de aves para el lote seleccionado. Por favor verifique la configuración de inventario en Mortalidad.");
+      }else{
+        toast.error("Debe configurar productos en la sección de Mortalidad.");
+      }
       return;
     }
 
@@ -285,12 +305,14 @@ export function ReportDaily() {
         setSelectedOption({ id: "", name: "" });
         setWarehouseData({} as WarehouseData);
         setFormReportDaily(initialFormReportDaily);
+        setMounthin("");
         toast.success("Los datos se guardaron correctamente.");
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al enviar los datos:", error);
+      console.error("Error al enviar los datos  | handleSubmit:");
       return;
+      throw error; // Re-throw the error to be caught by the calling function
     }
   };
 
@@ -410,7 +432,7 @@ export function ReportDaily() {
       ...(warehousesData?.GrupoIdGranjaAlimentos ?? []),
       ...(warehousesData?.GrupoIdGranjaCalcio ?? []),
     ].flatMap(producto => {
-      const seccion = grupoNombreMap[producto.grupo as string] || "Otro";
+      const seccion = Object.entries(initialSeccion).find(([, value]) => value === producto.grupo)?.[0] ;
       if (producto.ManejaLotes === "S") {
         return (producto.lotes ?? [])
           .filter(lote => lote.qtyToAdd !== undefined)
@@ -441,8 +463,8 @@ export function ReportDaily() {
         : undefined,
       produccion: {
         Huevos: formReportDaily.eggs ? formReportDaily.eggs : undefined,
-        Picados: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
-        Forro: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Picados: formReportDaily.eggs_chopped ? formReportDaily.eggs_chopped : undefined,
+        Forro: formReportDaily.eggs_lining ? formReportDaily.eggs_lining : undefined,
         Quebrado: formReportDaily.eggs_broken ? formReportDaily.eggs_broken : undefined,
       },
       productos,
@@ -462,12 +484,14 @@ export function ReportDaily() {
         setFormReportDaily(initialFormReportDaily);
         setGramsBirdDay(0);
         setGramsCalcioDay(0);
+        setMounthin("");
         toast.success(data.message || "Registro editado correctamente.");
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al enviar los datos:", error);
+      console.error("Error al enviar los datos | editReport:");
       return;
+      throw error; // Re-throw the error to be caught by the calling function
     }
     
   }
@@ -600,9 +624,9 @@ export function ReportDaily() {
                 />
                 <FormProduction 
                   id="picado" 
-                  label="Picado" 
-                  value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} 
-                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
+                  label="Picado"
+                  value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} 
+                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
                   onKeyDown={(e) => {
                   if (!/^[0-9]$/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
                     e.preventDefault();
@@ -612,8 +636,8 @@ export function ReportDaily() {
                 <FormProduction 
                   id="forro" 
                   label="Sucio" 
-                  value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} 
-                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
+                  value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} 
+                  onChange={(e) => setFormReportDaily((prevState) => ({ ...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9]/g, "")) }))} 
                   onKeyDown={(e) => {
                   if (!/^[0-9]$/.test(e.key) && e.key !== "Backspace" && e.key !== "Delete" && e.key !== "ArrowLeft" && e.key !== "ArrowRight") {
                     e.preventDefault();

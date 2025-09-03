@@ -31,10 +31,11 @@ export function ClasificationProduct() {
   const [options, setOptions] = useState<{ value: string; label: string }[]>(
     []
   );
+  const [edit, setEdit] = useState<boolean>(false); // editar reporte diario
   const [formReportDaily, setFormReportDaily] = useState<FormReportDaily>(initialFormReportDaily);
   const [loading, setLoading] = useState(false);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
-
+  const [, setInitialized] = useState(false);
 
   /* HOOKS */
   const { apiService } = useApi();
@@ -61,7 +62,8 @@ export function ClasificationProduct() {
         }
       } catch (error) {
         setLoading(false);
-        console.error("Error al obtener los almacenes:", error);
+        console.error("Error al obtener los almacenes fetchAlmacenes:");
+        throw error; // Lanza el error para que pueda ser capturado por el bloque catch
       }
     };
 
@@ -69,9 +71,6 @@ export function ClasificationProduct() {
   }, []);
 
   useEffect(() => {
-    if (selectedOption.id) {
-      console.log("almacenid actualizado:", selectedOption.id);
-    }
   }, [selectedOption.id]);
 
   // Función para manejar la selección de un almacén
@@ -95,9 +94,14 @@ export function ClasificationProduct() {
       setLoading(true);
       const response = await productService.getRegisteredProductsByDateAndWarehouse(`${dateToSend}`, `${almacenid}`);
       const { data, status } = response as AxiosResponse;
-      if (status === 200) {
+      setEdit(false);
+      setInitialized(false);
+      setQuantities({});
+      
+      if (status === 200) {       
         setLoading(false);
         setWarehouseData(data.Production);
+        setEdit(data.edit);
 
         const ProductProduction = data.products[0];
         const updatedFormReportDaily = {
@@ -109,10 +113,25 @@ export function ClasificationProduct() {
           observation: ProductProduction?.Observacion || initialFormReportDaily.observation,
         };
         setFormReportDaily(updatedFormReportDaily);
+
+        if (data.edit) {
+          setEdit(true);
+            const updatedQuantities = { ...quantities };
+            data.Production.GrupoIdGranjaProduccion.forEach((product: Product) => {
+              updatedQuantities[product.productId as string] = product.cantidad || 0; // Set the quantity for each product
+            });
+            setQuantities(updatedQuantities);            
+            setInitialized(true);
+        }
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al obtener los datos del almacén:", error);
+      console.error("Error al obtener los datos del almacén fetchWarehouseData:");
+      setWarehouseData(null);
+      setFormReportDaily(initialFormReportDaily);
+      setQuantities({});
+      setEdit(false);
+      throw error; // Lanza el error para que pueda ser capturado por el bloque catch
     }
   };
 
@@ -136,8 +155,8 @@ export function ClasificationProduct() {
 
     const filteredProducts = Object.entries(quantities)
       .filter(([_, quantity]) => quantity > 0)
-      .map(([productId, quantity]) => ({
-        productId,
+      .map(([productoid, quantity]) => ({
+        productoid,
         cantidad: quantity,
         seccion: 'Produccion'
       }));
@@ -154,6 +173,7 @@ export function ClasificationProduct() {
       warehouseId: selectedOption.id.trim(),
       productos: filteredProducts,
       modul: "Clasification",
+      edit: edit,
     };
 
     try {
@@ -166,16 +186,46 @@ export function ClasificationProduct() {
         setWarehouseData(null);
         setFormReportDaily(initialFormReportDaily);
         setQuantities({});
+        setEdit(false);
         toast.success("Los datos se guardaron correctamente.");
       }
 
     } catch (error) {
       setLoading(false);
-      console.error("Error al enviar los datos:", error);
-      toast.error("Error al guardar los datos.");
+      console.error("Error al enviar los datos handleSubmit:");
+      throw error; // Lanza el error para que pueda ser capturado por el bloque catch
     }
 
   };
+
+  //funciona para anular el reporte diario
+  const anularReporte = async () => {
+
+    try {
+      setLoading(true);
+      const requestData = {
+        fecha: selectedDate.toISOString().split("T")[0],
+        warehouseId: selectedOption.id.trim(),
+        modul: "Clasification",
+      };
+      const response = await productService.anularProductInventari({requestData});
+      const { status, data } = response as AxiosResponse;
+      if (status === 200) {
+        setLoading(false);
+        setSelectedDate(new Date());
+        setSelectedOption({ id: "", name: "" });
+        setWarehouseData(null);
+        setFormReportDaily(initialFormReportDaily);
+        setQuantities({});
+        setEdit(false);
+        toast.success(data.message || "Reporte diario anulado correctamente.");
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error al anular el reporte diario anularReporte:");
+      throw error; // Lanza el error para que pueda ser capturado por el bloque catch
+    }
+  }
 
   let totalEggs = Number(formReportDaily.eggs) + Number(formReportDaily.eggs_lining) + Number(formReportDaily.eggs_chopped) + Number(formReportDaily.eggs_broken);
   if (isNaN(totalEggs)) {
@@ -238,8 +288,8 @@ export function ClasificationProduct() {
             <div className="flex items-center space-x-2">
                 <div className="grid grid-cols-5 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
                 <FormProduction id="Huevos" label="Huevos" value={Number(formReportDaily.eggs).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs: e.target.value.replace(/[^0-9,]/g, "")}))} disabled={true}/>
-                <FormProduction id="Picados" label="Picado" value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
-                <FormProduction id="Forro" label="Sucio" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
+                <FormProduction id="Picados" label="Picado" value={Number(formReportDaily.eggs_chopped).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_chopped: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
+                <FormProduction id="Forro" label="Sucio" value={Number(formReportDaily.eggs_lining).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_lining: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
                 <FormProduction id="Quebrados" label="Quebrado" value={Number(formReportDaily.eggs_broken).toLocaleString("es-CO")} onChange={(e)=>setFormReportDaily((prevState)=>({...prevState, eggs_broken: Number(e.target.value.replace(/[^0-9,]/g, ""))}))} disabled={true}/>
                 <FormProduction id="total" label={`Total`} value={Number(totalEggs).toLocaleString("es-CO")} disabled={true}/>
                 </div>
@@ -269,9 +319,25 @@ export function ClasificationProduct() {
           <p className="text-gray-500">No hay productos disponibles.</p>
         )}
 
-        <Button type="submit" className="w-full mb-10">
-          Enviar
-        </Button>
+        {edit ? (
+          <div className="flex gap-4 w-full mb-10">
+            <Button type="submit" className="flex-1">
+              Editar
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              className="flex-1"
+              onClick={() => anularReporte()}
+            >
+              Anular
+            </Button>
+          </div>
+        ) : (
+          <Button type="submit" className="w-full mb-10">
+            Enviar
+          </Button>
+        )}
       </form>
     </div>
   );

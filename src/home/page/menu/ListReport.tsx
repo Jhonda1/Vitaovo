@@ -55,8 +55,9 @@ export function ListReport() {
         }
       } catch (error) {
         setLoading(false);
-        console.error("Error al obtener los almacenes:", error);
+        console.error("Error al obtener los almacenes fetchAlmacenes:");
         toast.error("Error al obtener los almacenes.");
+        throw error; // Lanza el error para que pueda ser capturado por el bloque catch
       }
     };
 
@@ -100,7 +101,17 @@ export function ListReport() {
         setLoading(false);
         setWarehouseData(data.Production);
 
-        const dataParserProduction = data?.products.map((element: { Huevos: any; Forro: any; Picados: any; Quebrados: any; Observacion: any; AlmacenId: any; nombre: any; }) => ({
+        interface ProductElement {
+          Huevos: number;
+          Forro: number;
+          Picados: number;
+          Quebrados: number;
+          Observacion: string;
+          AlmacenId: string;
+          nombre: string;
+        }
+
+        const dataParserProduction = data?.products.map((element: ProductElement) => ({
           ...initialFormReportDaily,
           eggs: element?.Huevos || initialFormReportDaily.eggs,
           eggs_lining: element?.Forro || initialFormReportDaily.eggs_lining,
@@ -116,8 +127,9 @@ export function ListReport() {
       }
     } catch (error) {
       setLoading(false);
-      console.error("Error al obtener los datos del almacén:", error);
+      console.error("Error al obtener los datos del almacén fetchWarehouseData:");
       toast.error("Error al obtener los datos del almacén.");
+      throw error; // Lanza el error para que pueda ser capturado por el bloque catch
     }
   };
 
@@ -177,8 +189,89 @@ export function ListReport() {
               className="mx-2 border rounded-2xl border-slate-200 p-4"
               key={index}
               >
+                <h3>{formReportDaily.find(element=>element.AlmacenId == index)?.nombre || ''}</h3>
                 <div className="min-w-[25rem]">
-                  <h3>{formReportDaily.find(element=>element.AlmacenId == index)?.nombre || ''}</h3>
+                  <h6 className="text-2xl font-bold mb-4">Producción</h6>
+                  <div className="grid  gap-4">
+                    <div className="flex items-center space-x-2 pb-2">
+                        <div className="grid grid-cols-1 gap-1 p-2 border rounded-md shadow-sm bg-white w-full">
+                        <FormProduction
+                        id="Huevos"
+                        label="Huevos"
+                        value={Number(
+                        formReportDaily.find(
+                          (element) => element.AlmacenId == index
+                        )?.eggs
+                        ).toLocaleString("es-CO")}
+                        disabled={true}
+                        vertical={false}
+                        />
+                      <FormProduction
+                        id="Picados"
+                        label="Picado"
+                        value={Number(
+                        formReportDaily.find(
+                          (element) => element.AlmacenId == index
+                        )?.eggs_chopped
+                        ).toLocaleString("es-CO")}
+                        onChange={(e) =>
+                        setFormReportDaily((prevState) => ({
+                          ...prevState,
+                          eggs_chopped: Number(
+                          e.target.value.replace(/[^0-9,]/g, "")
+                          ),
+                        }))}
+                        disabled={true}
+                        vertical={false}
+                      />
+                      <FormProduction
+                        id="Forro"
+                        label="Sucio"
+                        value={Number(
+                        formReportDaily.find(
+                          (element) => element.AlmacenId == index
+                        )?.eggs_lining
+                        ).toLocaleString("es-CO")}
+                        onChange={(e) =>
+                        setFormReportDaily((prevState) => ({
+                          ...prevState,
+                          eggs_lining: Number(
+                          e.target.value.replace(/[^0-9,]/g, "")
+                          ),
+                        }))}
+                        disabled={true}
+                        vertical={false}
+                      />
+                      <FormProduction
+                        id="Quebrados"
+                        label="Quebrado"
+                        value={Number(
+                        formReportDaily.find(
+                          (element) => element.AlmacenId == index
+                        )?.eggs_broken
+                        ).toLocaleString("es-CO")}
+                        onChange={(e) =>
+                        setFormReportDaily((prevState) => ({
+                          ...prevState,
+                          eggs_broken: Number(
+                          e.target.value.replace(/[^0-9,]/g, "")
+                          ),
+                        }))}
+                        disabled={true}
+                        vertical={false}
+                      />
+                      <FormProduction
+                        id="total"
+                        label={`Total`}
+                        value={sumTotalProduction(index).toString()}
+                        disabled={true}
+                        vertical={false}
+                      />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="min-w-[25rem]">
                   <h6 className="text-xl font-bold mb-4">Mortalidad</h6>
                   {element?.GrupoIdGranjaAnimales &&
                   element.GrupoIdGranjaAnimales.length > 0 ? (
@@ -297,87 +390,6 @@ export function ListReport() {
                     No hay calcio agregado a este reporte.
                   </p>
                   )}
-                </div>
-                <div className="min-w-[25rem]">
-                  <h6 className="text-2xl font-bold mb-4">Producción</h6>
-                  <div className="grid  gap-4">
-                    <div className="flex items-center space-x-2">
-                        <div className="grid grid-cols-1 gap-4 p-4 border rounded-md shadow-sm bg-white w-full">
-                        <FormProduction
-                        id="Huevos"
-                        label="Huevos"
-                        value={Number(
-                        formReportDaily.find(
-                          (element) => element.AlmacenId == index
-                        )?.eggs
-                        ).toLocaleString("es-CO")}
-                        disabled={true}
-                        vertical={false}
-                        />
-                      <FormProduction
-                        id="Picados"
-                        label="Picado"
-                        value={Number(
-                        formReportDaily.find(
-                          (element) => element.AlmacenId == index
-                        )?.eggs_lining
-                        ).toLocaleString("es-CO")}
-                        onChange={(e) =>
-                        setFormReportDaily((prevState) => ({
-                          ...prevState,
-                          eggs_lining: Number(
-                          e.target.value.replace(/[^0-9,]/g, "")
-                          ),
-                        }))}
-                        disabled={true}
-                        vertical={false}
-                      />
-                      <FormProduction
-                        id="Forro"
-                        label="Sucio"
-                        value={Number(
-                        formReportDaily.find(
-                          (element) => element.AlmacenId == index
-                        )?.eggs_chopped
-                        ).toLocaleString("es-CO")}
-                        onChange={(e) =>
-                        setFormReportDaily((prevState) => ({
-                          ...prevState,
-                          eggs_chopped: Number(
-                          e.target.value.replace(/[^0-9,]/g, "")
-                          ),
-                        }))}
-                        disabled={true}
-                        vertical={false}
-                      />
-                      <FormProduction
-                        id="Quebrados"
-                        label="Quebrado"
-                        value={Number(
-                        formReportDaily.find(
-                          (element) => element.AlmacenId == index
-                        )?.eggs_broken
-                        ).toLocaleString("es-CO")}
-                        onChange={(e) =>
-                        setFormReportDaily((prevState) => ({
-                          ...prevState,
-                          eggs_broken: Number(
-                          e.target.value.replace(/[^0-9,]/g, "")
-                          ),
-                        }))}
-                        disabled={true}
-                        vertical={false}
-                      />
-                      <FormProduction
-                        id="total"
-                        label={`Total`}
-                        value={sumTotalProduction(index).toString()}
-                        disabled={true}
-                        vertical={false}
-                      />
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             ))
